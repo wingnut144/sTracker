@@ -1,0 +1,16 @@
+services:
+  web:
+    build: .
+   # ports:
+   #   - "5000:5000"
+    networks:
+      - tracker-network
+    volumes:
+      - ./data:/app/data
+    environment:
+      - FLASK_ENV=production
+    restart: unless-stopped
+
+networks:
+  tracker-network:
+    external: true
