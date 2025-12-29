@@ -47,6 +47,7 @@ class User(db.Model):
     encounters = db.relationship('Encounter', backref='user', lazy=True, cascade='all, delete-orphan')
     comments_made = db.relationship('Comment', foreign_keys='Comment.commenter_id', backref='commenter', lazy=True)
     notifications = db.relationship('Notification', backref='user', lazy=True, cascade='all, delete-orphan')
+    proposed_encounters = db.relationship('ProposedEncounter', foreign_keys='ProposedEncounter.proposer_id', backref='proposer', lazy=True)
 
 class Encounter(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -62,6 +63,19 @@ class Encounter(db.Model):
     # Relationships
     comments = db.relationship('Comment', backref='encounter', lazy=True, cascade='all, delete-orphan')
 
+class ProposedEncounter(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    proposer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    partner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    proposed_date = db.Column(db.Date, nullable=False)
+    proposed_time = db.Column(db.Time, nullable=True)
+    position = db.Column(db.String(50), nullable=True)
+    notes = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(20), default='pending')  # pending, confirmed, declined, cancelled
+    decline_reason = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    responded_at = db.Column(db.DateTime, nullable=True)
+
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     encounter_id = db.Column(db.Integer, db.ForeignKey('encounter.id'), nullable=False)
@@ -74,7 +88,8 @@ class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     encounter_id = db.Column(db.Integer, db.ForeignKey('encounter.id'), nullable=True)
-    type = db.Column(db.String(50), nullable=False)  # 'new_encounter', 'new_comment'
+    proposed_encounter_id = db.Column(db.Integer, db.ForeignKey('proposed_encounter.id'), nullable=True)
+    type = db.Column(db.String(50), nullable=False)  # 'new_encounter', 'new_comment', 'proposal', 'proposal_confirmed', 'proposal_declined'
     message = db.Column(db.Text, nullable=False)
     read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -202,11 +217,12 @@ def send_notification_message(phone_number, message):
     return False, 'none', 'Both Signal and Twilio failed'
 
 
-def create_notification(user_id, encounter_id, notification_type, message):
+def create_notification(user_id, notification_type, message, encounter_id=None, proposed_encounter_id=None):
     """Create in-app notification"""
     notification = Notification(
         user_id=user_id,
         encounter_id=encounter_id,
+        proposed_encounter_id=proposed_encounter_id,
         type=notification_type,
         message=message
     )
@@ -214,9 +230,9 @@ def create_notification(user_id, encounter_id, notification_type, message):
     db.session.commit()
 
 
-def notify_partner(current_user_id, encounter_id, notification_type, message):
+def notify_partner(current_user_id, notification_type, message, encounter_id=None, proposed_encounter_id=None):
     """
-    Notify partner about new encounter or comment
+    Notify partner about new encounter, comment, or proposal
     Uses Signal first, falls back to Twilio
     """
     user = User.query.get(current_user_id)
@@ -229,7 +245,7 @@ def notify_partner(current_user_id, encounter_id, notification_type, message):
         return
     
     # Create in-app notification (always works)
-    create_notification(partner.id, encounter_id, notification_type, message)
+    create_notification(partner.id, notification_type, message, encounter_id, proposed_encounter_id)
     
     # Send external notification if enabled and phone number exists
     if partner.sms_notifications and partner.phone_number:
@@ -403,6 +419,178 @@ def disconnect_partner():
     return jsonify({'success': True})
 
 # ============================================================================
+# API ROUTES - Proposed Encounters (Scheduling)
+# ============================================================================
+
+@app.route('/api/proposed-encounters', methods=['GET'])
+def get_proposed_encounters():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    user = User.query.get(session['user_id'])
+    
+    # Get proposals where user is either proposer or partner
+    proposals = ProposedEncounter.query.filter(
+        db.or_(
+            ProposedEncounter.proposer_id == session['user_id'],
+            ProposedEncounter.partner_id == session['user_id']
+        )
+    ).order_by(ProposedEncounter.proposed_date.desc(), ProposedEncounter.proposed_time.desc()).all()
+    
+    return jsonify([{
+        'id': p.id,
+        'proposer_id': p.proposer_id,
+        'proposer_username': User.query.get(p.proposer_id).username,
+        'partner_id': p.partner_id,
+        'partner_username': User.query.get(p.partner_id).username,
+        'proposed_date': p.proposed_date.isoformat(),
+        'proposed_time': p.proposed_time.isoformat() if p.proposed_time else None,
+        'position': p.position,
+        'notes': p.notes,
+        'status': p.status,
+        'decline_reason': p.decline_reason,
+        'created_at': p.created_at.isoformat(),
+        'responded_at': p.responded_at.isoformat() if p.responded_at else None,
+        'is_proposer': p.proposer_id == session['user_id'],
+        'needs_response': p.partner_id == session['user_id'] and p.status == 'pending'
+    } for p in proposals])
+
+@app.route('/api/proposed-encounters', methods=['POST'])
+def create_proposed_encounter():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    user = User.query.get(session['user_id'])
+    
+    if not user.partner_id:
+        return jsonify({'error': 'No partner connected'}), 400
+    
+    data = request.get_json()
+    
+    proposal = ProposedEncounter(
+        proposer_id=session['user_id'],
+        partner_id=user.partner_id,
+        proposed_date=datetime.fromisoformat(data['proposed_date']).date(),
+        proposed_time=datetime.fromisoformat(data['proposed_time']).time() if data.get('proposed_time') else None,
+        position=data.get('position'),
+        notes=data.get('notes', ''),
+        status='pending'
+    )
+    
+    db.session.add(proposal)
+    db.session.commit()
+    
+    # Notify partner
+    date_str = proposal.proposed_date.strftime('%B %d, %Y')
+    time_str = proposal.proposed_time.strftime('%I:%M %p') if proposal.proposed_time else 'anytime'
+    message = f"📅 {user.username} proposed getting together on {date_str} at {time_str}"
+    
+    notify_partner(session['user_id'], 'proposal', message, proposed_encounter_id=proposal.id)
+    
+    return jsonify({
+        'id': proposal.id,
+        'success': True
+    })
+
+@app.route('/api/proposed-encounters/<int:proposal_id>/confirm', methods=['POST'])
+def confirm_proposal(proposal_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    proposal = ProposedEncounter.query.get(proposal_id)
+    
+    if not proposal:
+        return jsonify({'error': 'Proposal not found'}), 404
+    
+    # Only partner can confirm
+    if proposal.partner_id != session['user_id']:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    # Can only confirm pending proposals
+    if proposal.status != 'pending':
+        return jsonify({'error': 'Proposal already responded to'}), 400
+    
+    proposal.status = 'confirmed'
+    proposal.responded_at = datetime.utcnow()
+    db.session.commit()
+    
+    # Notify proposer
+    user = User.query.get(session['user_id'])
+    date_str = proposal.proposed_date.strftime('%B %d, %Y')
+    time_str = proposal.proposed_time.strftime('%I:%M %p') if proposal.proposed_time else 'anytime'
+    message = f"✅ {user.username} confirmed your proposal for {date_str} at {time_str}"
+    
+    notify_partner(session['user_id'], 'proposal_confirmed', message, proposed_encounter_id=proposal.id)
+    
+    return jsonify({'success': True})
+
+@app.route('/api/proposed-encounters/<int:proposal_id>/decline', methods=['POST'])
+def decline_proposal(proposal_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    proposal = ProposedEncounter.query.get(proposal_id)
+    
+    if not proposal:
+        return jsonify({'error': 'Proposal not found'}), 404
+    
+    # Only partner can decline
+    if proposal.partner_id != session['user_id']:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    # Can only decline pending proposals
+    if proposal.status != 'pending':
+        return jsonify({'error': 'Proposal already responded to'}), 400
+    
+    data = request.get_json()
+    reason = data.get('reason', '')
+    
+    proposal.status = 'declined'
+    proposal.decline_reason = reason
+    proposal.responded_at = datetime.utcnow()
+    db.session.commit()
+    
+    # Notify proposer
+    user = User.query.get(session['user_id'])
+    date_str = proposal.proposed_date.strftime('%B %d, %Y')
+    reason_text = f" Reason: {reason}" if reason else ""
+    message = f"❌ {user.username} declined your proposal for {date_str}.{reason_text}"
+    
+    notify_partner(session['user_id'], 'proposal_declined', message, proposed_encounter_id=proposal.id)
+    
+    return jsonify({'success': True})
+
+@app.route('/api/proposed-encounters/<int:proposal_id>', methods=['DELETE'])
+def cancel_proposal(proposal_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    proposal = ProposedEncounter.query.get(proposal_id)
+    
+    if not proposal:
+        return jsonify({'error': 'Proposal not found'}), 404
+    
+    # Only proposer can cancel
+    if proposal.proposer_id != session['user_id']:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    # Can only cancel pending proposals
+    if proposal.status != 'pending':
+        return jsonify({'error': 'Cannot cancel non-pending proposal'}), 400
+    
+    proposal.status = 'cancelled'
+    db.session.commit()
+    
+    # Notify partner
+    user = User.query.get(session['user_id'])
+    date_str = proposal.proposed_date.strftime('%B %d, %Y')
+    message = f"🚫 {user.username} cancelled their proposal for {date_str}"
+    
+    notify_partner(session['user_id'], 'proposal_cancelled', message, proposed_encounter_id=proposal.id)
+    
+    return jsonify({'success': True})
+
+# ============================================================================
 # API ROUTES - Notifications
 # ============================================================================
 
@@ -427,6 +615,7 @@ def get_notifications():
             'message': n.message,
             'read': n.read,
             'encounter_id': n.encounter_id,
+            'proposed_encounter_id': n.proposed_encounter_id,
             'created_at': n.created_at.isoformat()
         } for n in notifications],
         'unread_count': unread_count
@@ -516,7 +705,7 @@ def add_encounter():
     user = User.query.get(session['user_id'])
     if user.partner_id:
         message = f"💕 {user.username} added a new intimate moment"
-        notify_partner(session['user_id'], encounter.id, 'new_encounter', message)
+        notify_partner(session['user_id'], 'new_encounter', message, encounter_id=encounter.id)
     
     return jsonify({
         'id': encounter.id,
@@ -621,7 +810,7 @@ def add_comment(encounter_id):
     # Notify encounter owner if comment is from partner
     if encounter.user_id != session['user_id']:
         message = f"💬 {user.username} commented on your intimate moment"
-        notify_partner(session['user_id'], encounter_id, 'new_comment', message)
+        notify_partner(session['user_id'], 'new_comment', message, encounter_id=encounter_id)
     
     return jsonify({'success': True})
 
@@ -653,10 +842,17 @@ def get_stats():
     ratings = [e.rating for e in all_encounters if e.rating]
     avg_rating = sum(ratings) / len(ratings) if ratings else 0
     
+    # Pending proposals
+    pending_proposals = ProposedEncounter.query.filter(
+        ProposedEncounter.partner_id == session['user_id'],
+        ProposedEncounter.status == 'pending'
+    ).count()
+    
     return jsonify({
         'total': len(all_encounters),
         'this_month': this_month,
-        'average_rating': round(avg_rating, 1)
+        'average_rating': round(avg_rating, 1),
+        'pending_proposals': pending_proposals
     })
 
 # ============================================================================
