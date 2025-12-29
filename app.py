@@ -25,7 +25,7 @@ app.config['SESSION_COOKIE_SECURE'] = True  # HTTPS only
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_NAME'] = 'funtracker_session'
-app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # 24 hours
+app.config['PERMANENT_SESSION_LIFETIME'] = 7200  # 2 hours
 
 db = SQLAlchemy(app)
 
@@ -297,6 +297,7 @@ def login():
         if user and check_password_hash(user.password_hash, data['password']):
             session['user_id'] = user.id
             session['username'] = user.username
+            session.permanent = True
             return jsonify({'success': True})
         
         return jsonify({'success': False, 'error': 'Invalid credentials'})
