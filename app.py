@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', os.urandom(24))
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
     'DATABASE_URL',
     'postgresql://user:password@db:5432/tracker'
@@ -963,6 +963,17 @@ def delete_custom_icon(position_name):
 
 with app.app_context():
     db.create_all()
+
+@app.route('/test-session')
+def test_session():
+    """Debug route to test if sessions work"""
+    session['test'] = 'working'
+    session.permanent = True
+    return jsonify({
+        'status': 'success',
+        'session_data': dict(session),
+        'secret_key_length': len(app.config.get('SECRET_KEY', ''))
+    })
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
