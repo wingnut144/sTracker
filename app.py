@@ -13,20 +13,19 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', os.urandom(24))
-
-app.config['SESSION_COOKIE_SECURE'] = True  # HTTPS only
-app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Allow same-site requests
-app.config['SESSION_COOKIE_NAME'] = 'funtracker_session'
-app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # 24 hours
-
-# Database configuration - supports both PostgreSQL and SQLite
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
     'DATABASE_URL',
-    'sqlite:///data/intimate_tracker.db'
+    'postgresql://user:password@db:5432/tracker'
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024  # 1MB max
+
+# Session cookie configuration (FIX FOR AUTHENTICATION ISSUES)
+app.config['SESSION_COOKIE_SECURE'] = True  # HTTPS only
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_NAME'] = 'funtracker_session'
+app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # 24 hours
 
 db = SQLAlchemy(app)
 
