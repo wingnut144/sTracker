@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proposals - Intimate Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .badge {
+            background: #ff6b6b;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .create-proposal-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .create-proposal-btn:hover {
+            background: #5568d3;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-content h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+        
+        .proposals-list {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .proposal-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .proposal-card.pending {
+            border-left: 4px solid #ffa500;
+        }
+        
+        .proposal-card.confirmed {
+            border-left: 4px solid #51cf66;
+        }
+        
+        .proposal-card.declined {
+            border-left: 4px solid #ff6b6b;
+        }
+        
+        .proposal-card.cancelled {
+            border-left: 4px solid #999;
+        }
+        
+        .proposal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+        
+        .proposal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-badge.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-badge.confirmed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-badge.declined {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-badge.cancelled {
+            background: #e0e0e0;
+            color: #666;
+        }
+        
+        .proposal-details {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .proposal-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .action-btn.confirm {
+            background: #51cf66;
+            color: white;
+        }
+        
+        .action-btn.decline {
+            background: #ff6b6b;
+            color: white;
+        }
+        
+        .action-btn.cancel {
+            background: #999;
+            color: white;
+        }
+        
+        .decline-reason {
+            background: #f8f9fa;
+            border-left: 3px solid #ff6b6b;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-style: italic;
+        }
+        
+        .empty-state {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 Proposals</h1>
+            <p>Schedule intimate moments with your partner</p>
+        </div>
+        
+        <button class="create-proposal-btn" onclick="showCreateModal()">
+            ➕ Propose New Encounter
+        </button>
+        
+        <div class="proposals-list" id="proposals-list">
+            <!-- Proposals will be loaded here -->
+        </div>
+    </div>
+    
+    <!-- Create Proposal Modal -->
+    <div class="modal" id="create-modal">
+        <div class="modal-content">
+            <h2>Propose Encounter</h2>
+            <form id="proposal-form" onsubmit="createProposal(event)">
+                <div class="form-group">
+                    <label for="proposed-date">Date *</label>
+                    <input type="date" id="proposed-date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="proposed-time">Time (optional)</label>
+                    <input type="time" id="proposed-time">
+                </div>
+                
+                <div class="form-group">
+                    <label for="position">Position (optional)</label>
+                    <select id="position">
+                        <option value="">-- Select --</option>
+                        <option value="missionary">Missionary</option>
+                        <option value="doggy">Doggy</option>
+                        <option value="cowgirl">Cowgirl</option>
+                        <option value="reverse_cowgirl">Reverse Cowgirl</option>
+                        <option value="spoon">Spoon</option>
+                        <option value="standing">Standing</option>
+                        <option value="oral">Oral</option>
+                        <option value="69">69</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="notes">Notes (optional)</label>
+                    <textarea id="notes" placeholder="Any special plans or ideas..."></textarea>
+                </div>
+                
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="closeCreateModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Send Proposal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // Load proposals on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProposals();
+        });
+        
+        // Load all proposals
+        async function loadProposals() {
+            try {
+                const response = await fetch('/api/proposed-encounters');
+                const proposals = await response.json();
+                
+                const container = document.getElementById('proposals-list');
+                
+                if (proposals.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h3>No proposals yet</h3>
+                            <p>Create your first proposal to get started!</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = proposals.map(proposal => {
+                    const date = new Date(proposal.proposed_date).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    
+                    const time = proposal.proposed_time ? 
+                        new Date(`2000-01-01T${proposal.proposed_time}`).toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit'
+                        }) : 
+                        'anytime';
+                    
+                    const who = proposal.is_proposer ? 'You' : proposal.proposer_username;
+                    const whom = proposal.is_proposer ? proposal.partner_username : 'you';
+                    
+                    let actions = '';
+                    
+                    if (proposal.needs_response) {
+                        actions = `
+                            <div class="proposal-actions">
+                                <button class="action-btn confirm" onclick="confirmProposal(${proposal.id})">
+                                    ✅ Confirm
+                                </button>
+                                <button class="action-btn decline" onclick="declineProposal(${proposal.id})">
+                                    ❌ Decline
+                                </button>
+                            </div>
+                        `;
+                    } else if (proposal.is_proposer && proposal.status === 'pending') {
+                        actions = `
+                            <div class="proposal-actions">
+                                <button class="action-btn cancel" onclick="cancelProposal(${proposal.id})">
+                                    🚫 Cancel Proposal
+                                </button>
+                            </div>
+                        `;
+                    }
+                    
+                    let declineReason = '';
+                    if (proposal.status === 'declined' && proposal.decline_reason) {
+                        declineReason = `
+                            <div class="decline-reason">
+                                <strong>Reason:</strong> ${proposal.decline_reason}
+                            </div>
+                        `;
+                    }
+                    
+                    return `
+                        <div class="proposal-card ${proposal.status}">
+                            <div class="proposal-header">
+                                <div class="proposal-title">
+                                    ${who} proposed to ${whom}
+                                </div>
+                                <span class="status-badge ${proposal.status}">${proposal.status}</span>
+                            </div>
+                            <div class="proposal-details">
+                                <div>📅 ${date}</div>
+                                <div>🕐 ${time}</div>
+                                ${proposal.position ? `<div>💑 ${proposal.position}</div>` : ''}
+                                ${proposal.notes ? `<div>💭 ${proposal.notes}</div>` : ''}
+                            </div>
+                            ${declineReason}
+                            ${actions}
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                console.error('Error loading proposals:', error);
+            }
+        }
+        
+        // Show create modal
+        function showCreateModal() {
+            document.getElementById('create-modal').classList.add('active');
+            // Set minimum date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('proposed-date').min = today;
+        }
+        
+        // Close create modal
+        function closeCreateModal() {
+            document.getElementById('create-modal').classList.remove('active');
+            document.getElementById('proposal-form').reset();
+        }
+        
+        // Create proposal
+        async function createProposal(event) {
+            event.preventDefault();
+            
+            const date = document.getElementById('proposed-date').value;
+            const time = document.getElementById('proposed-time').value;
+            const position = document.getElementById('position').value;
+            const notes = document.getElementById('notes').value;
+            
+            try {
+                const response = await fetch('/api/proposed-encounters', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        proposed_date: date + 'T00:00:00',
+                        proposed_time: time ? date + 'T' + time : null,
+                        position: position || null,
+                        notes: notes
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    closeCreateModal();
+                    loadProposals();
+                    alert('✅ Proposal sent to your partner!');
+                } else {
+                    alert('❌ Error: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error creating proposal:', error);
+                alert('❌ Error creating proposal');
+            }
+        }
+        
+        // Confirm proposal
+        async function confirmProposal(id) {
+            if (!confirm('Confirm this proposal?')) return;
+            
+            try {
+                const response = await fetch(`/api/proposed-encounters/${id}/confirm`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    loadProposals();
+                    alert('✅ Confirmed! Your partner has been notified.');
+                } else {
+                    alert('❌ Error: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error confirming proposal:', error);
+                alert('❌ Error confirming proposal');
+            }
+        }
+        
+        // Decline proposal
+        async function declineProposal(id) {
+            const reason = prompt('Why are you declining? (Optional - will be shared with your partner)');
+            if (reason === null) return; // User clicked cancel
+            
+            try {
+                const response = await fetch(`/api/proposed-encounters/${id}/decline`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        reason: reason || ''
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    loadProposals();
+                    alert('❌ Declined. Your partner has been notified.');
+                } else {
+                    alert('❌ Error: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error declining proposal:', error);
+                alert('❌ Error declining proposal');
+            }
+        }
+        
+        // Cancel proposal
+        async function cancelProposal(id) {
+            if (!confirm('Cancel this proposal?')) return;
+            
+            try {
+                const response = await fetch(`/api/proposed-encounters/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    loadProposals();
+                    alert('🚫 Proposal cancelled.');
+                } else {
+                    alert('❌ Error: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error cancelling proposal:', error);
+                alert('❌ Error cancelling proposal');
+            }
+        }
+    </script>
+</body>
+</html>
