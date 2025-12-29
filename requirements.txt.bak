@@ -1,0 +1,7 @@
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Werkzeug==3.0.1
+
+# Optional: For SMS notifications
+# Uncomment and install if you want SMS alerts
+twilio==8.10.0

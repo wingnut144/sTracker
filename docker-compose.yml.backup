@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: stracker-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: intimateuser
+      POSTGRES_PASSWORD: intimatepass
+      POSTGRES_DB: intimatetracker
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - tracker-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U intimateuser -d intimatetracker"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    container_name: stracker-web
+    restart: unless-stopped
+    environment:
+      - FLASK_ENV=production
+      - DATABASE_URL=postgresql://intimateuser:intimatepass@db:5432/intimatetracker
+      - SECRET_KEY=${SECRET_KEY:-change-this-secret-key-in-production}
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - tracker-network
+
+volumes:
+  postgres_data:
+
+networks:
+  tracker-network:
+    external: true
