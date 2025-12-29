@@ -1,13 +1,94 @@
-# Updated Notification System for app.py
-# Replace the send_sms() function with these functions
-
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime, timedelta
 import os
-import requests
+import secrets
 import logging
+import requests
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', os.urandom(24))
+
+# Database configuration - supports both PostgreSQL and SQLite
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
+    'DATABASE_URL',
+    'sqlite:///data/intimate_tracker.db'
+)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024  # 1MB max
+
+db = SQLAlchemy(app)
+
+# ============================================================================
+# DATABASE MODELS
+# ============================================================================
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(200), nullable=False)
+    
+    # Partner system
+    partner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    partner_code = db.Column(db.String(20), unique=True, nullable=True)
+    
+    # Profile information
+    full_name = db.Column(db.String(100), nullable=True)
+    phone_number = db.Column(db.String(20), nullable=True)
+    sms_notifications = db.Column(db.Boolean, default=False)
+    private_notes = db.Column(db.Text, nullable=True)
+    
+    # Relationships
+    encounters = db.relationship('Encounter', backref='user', lazy=True, cascade='all, delete-orphan')
+    comments_made = db.relationship('Comment', foreign_keys='Comment.commenter_id', backref='commenter', lazy=True)
+    notifications = db.relationship('Notification', backref='user', lazy=True, cascade='all, delete-orphan')
+
+class Encounter(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    time = db.Column(db.Time, nullable=True)
+    position = db.Column(db.String(50), nullable=False)
+    duration = db.Column(db.Integer, nullable=True)  # in minutes
+    rating = db.Column(db.Integer, nullable=True)  # 1-5 stars
+    notes = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    comments = db.relationship('Comment', backref='encounter', lazy=True, cascade='all, delete-orphan')
+
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    encounter_id = db.Column(db.Integer, db.ForeignKey('encounter.id'), nullable=False)
+    commenter_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    text = db.Column(db.Text, nullable=False)
+    rating = db.Column(db.Integer, nullable=True)  # 1-5 stars
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    encounter_id = db.Column(db.Integer, db.ForeignKey('encounter.id'), nullable=True)
+    type = db.Column(db.String(50), nullable=False)  # 'new_encounter', 'new_comment'
+    message = db.Column(db.Text, nullable=False)
+    read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class CustomIcon(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    position_name = db.Column(db.String(50), nullable=False)
+    svg_content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+# ============================================================================
+# NOTIFICATION SYSTEM - Signal + Twilio with Smart Fallback
+# ============================================================================
 
 def send_signal_message(phone_number, message):
     """
@@ -22,7 +103,7 @@ def send_signal_message(phone_number, message):
             logger.warning("SIGNAL_NUMBER not configured, skipping Signal")
             return False, 'signal', 'Signal number not configured'
         
-        # Format phone number (remove any non-digits except leading +)
+        # Format phone number
         if not phone_number.startswith('+'):
             phone_number = '+' + phone_number.replace('+', '').replace('-', '').replace(' ', '')
         
@@ -121,7 +202,18 @@ def send_notification_message(phone_number, message):
     return False, 'none', 'Both Signal and Twilio failed'
 
 
-# Update the notify_partner function to use the new system
+def create_notification(user_id, encounter_id, notification_type, message):
+    """Create in-app notification"""
+    notification = Notification(
+        user_id=user_id,
+        encounter_id=encounter_id,
+        type=notification_type,
+        message=message
+    )
+    db.session.add(notification)
+    db.session.commit()
+
+
 def notify_partner(current_user_id, encounter_id, notification_type, message):
     """
     Notify partner about new encounter or comment
@@ -149,3 +241,497 @@ def notify_partner(current_user_id, encounter_id, notification_type, message):
             logger.warning(f"⚠️ Failed to notify partner {partner.username}: {error}")
     else:
         logger.info(f"ℹ️ External notifications disabled for {partner.username}")
+
+# ============================================================================
+# AUTHENTICATION ROUTES
+# ============================================================================
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        data = request.get_json()
+        user = User.query.filter_by(username=data['username']).first()
+        
+        if user and check_password_hash(user.password_hash, data['password']):
+            session['user_id'] = user.id
+            session['username'] = user.username
+            return jsonify({'success': True})
+        
+        return jsonify({'success': False, 'error': 'Invalid credentials'})
+    
+    return render_template('login.html')
+
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    
+    if User.query.filter_by(username=data['username']).first():
+        return jsonify({'success': False, 'error': 'Username already exists'})
+    
+    new_user = User(
+        username=data['username'],
+        password_hash=generate_password_hash(data['password']),
+        partner_code=secrets.token_urlsafe(12)  # Generate unique code
+    )
+    
+    db.session.add(new_user)
+    db.session.commit()
+    
+    session['user_id'] = new_user.id
+    session['username'] = new_user.username
+    
+    return jsonify({'success': True})
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
+# ============================================================================
+# MAIN ROUTES
+# ============================================================================
+
+@app.route('/')
+def index():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('calendar.html')
+
+@app.route('/profile')
+def profile():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('profile.html')
+
+@app.route('/admin')
+def admin():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('admin.html')
+
+# ============================================================================
+# API ROUTES - Profile & Partner Management
+# ============================================================================
+
+@app.route('/api/profile', methods=['GET'])
+def get_profile():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    user = User.query.get(session['user_id'])
+    partner = User.query.get(user.partner_id) if user.partner_id else None
+    
+    return jsonify({
+        'username': user.username,
+        'full_name': user.full_name or '',
+        'phone_number': user.phone_number or '',
+        'sms_notifications': user.sms_notifications,
+        'private_notes': user.private_notes or '',
+        'partner_code': user.partner_code,
+        'partner_username': partner.username if partner else None,
+        'partner_connected': partner is not None
+    })
+
+@app.route('/api/profile', methods=['POST'])
+def update_profile():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    data = request.get_json()
+    user = User.query.get(session['user_id'])
+    
+    user.full_name = data.get('full_name', '')
+    user.phone_number = data.get('phone_number', '')
+    user.sms_notifications = data.get('sms_notifications', False)
+    user.private_notes = data.get('private_notes', '')
+    
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/api/connect-partner', methods=['POST'])
+def connect_partner():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    data = request.get_json()
+    code = data.get('partner_code', '').strip()
+    
+    user = User.query.get(session['user_id'])
+    
+    # Don't allow connecting to self
+    if code == user.partner_code:
+        return jsonify({'success': False, 'error': 'Cannot connect to your own code'})
+    
+    # Find partner by code
+    partner = User.query.filter_by(partner_code=code).first()
+    
+    if not partner:
+        return jsonify({'success': False, 'error': 'Invalid partner code'})
+    
+    # Create bidirectional connection
+    user.partner_id = partner.id
+    partner.partner_id = user.id
+    
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'partner_username': partner.username
+    })
+
+@app.route('/api/disconnect-partner', methods=['POST'])
+def disconnect_partner():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    user = User.query.get(session['user_id'])
+    
+    if user.partner_id:
+        partner = User.query.get(user.partner_id)
+        
+        # Remove bidirectional connection
+        user.partner_id = None
+        if partner:
+            partner.partner_id = None
+        
+        db.session.commit()
+    
+    return jsonify({'success': True})
+
+# ============================================================================
+# API ROUTES - Notifications
+# ============================================================================
+
+@app.route('/api/notifications', methods=['GET'])
+def get_notifications():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    notifications = Notification.query.filter_by(
+        user_id=session['user_id']
+    ).order_by(Notification.created_at.desc()).limit(50).all()
+    
+    unread_count = Notification.query.filter_by(
+        user_id=session['user_id'],
+        read=False
+    ).count()
+    
+    return jsonify({
+        'notifications': [{
+            'id': n.id,
+            'type': n.type,
+            'message': n.message,
+            'read': n.read,
+            'encounter_id': n.encounter_id,
+            'created_at': n.created_at.isoformat()
+        } for n in notifications],
+        'unread_count': unread_count
+    })
+
+@app.route('/api/notifications/<int:notification_id>/mark-read', methods=['POST'])
+def mark_notification_read(notification_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    notification = Notification.query.get(notification_id)
+    
+    if notification and notification.user_id == session['user_id']:
+        notification.read = True
+        db.session.commit()
+        return jsonify({'success': True})
+    
+    return jsonify({'error': 'Notification not found'}), 404
+
+@app.route('/api/notifications/mark-all-read', methods=['POST'])
+def mark_all_read():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    Notification.query.filter_by(
+        user_id=session['user_id'],
+        read=False
+    ).update({'read': True})
+    
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+# ============================================================================
+# API ROUTES - Encounters
+# ============================================================================
+
+@app.route('/api/encounters', methods=['GET'])
+def get_encounters():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    # Get encounters for current user and partner (if connected)
+    user = User.query.get(session['user_id'])
+    user_ids = [user.id]
+    if user.partner_id:
+        user_ids.append(user.partner_id)
+    
+    encounters = Encounter.query.filter(
+        Encounter.user_id.in_(user_ids)
+    ).all()
+    
+    return jsonify([{
+        'id': e.id,
+        'date': e.date.isoformat(),
+        'time': e.time.isoformat() if e.time else None,
+        'position': e.position,
+        'duration': e.duration,
+        'rating': e.rating,
+        'notes': e.notes,
+        'user_id': e.user_id,
+        'is_own': e.user_id == session['user_id'],
+        'username': User.query.get(e.user_id).username
+    } for e in encounters])
+
+@app.route('/api/encounters', methods=['POST'])
+def add_encounter():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    data = request.get_json()
+    
+    encounter = Encounter(
+        user_id=session['user_id'],
+        date=datetime.fromisoformat(data['date']).date(),
+        time=datetime.fromisoformat(data['time']).time() if data.get('time') else None,
+        position=data['position'],
+        duration=data.get('duration'),
+        rating=data.get('rating'),
+        notes=data.get('notes', '')
+    )
+    
+    db.session.add(encounter)
+    db.session.commit()
+    
+    # Notify partner
+    user = User.query.get(session['user_id'])
+    if user.partner_id:
+        message = f"💕 {user.username} added a new intimate moment"
+        notify_partner(session['user_id'], encounter.id, 'new_encounter', message)
+    
+    return jsonify({
+        'id': encounter.id,
+        'success': True
+    })
+
+@app.route('/api/encounters/<int:encounter_id>', methods=['PUT'])
+def update_encounter(encounter_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    encounter = Encounter.query.get(encounter_id)
+    
+    if not encounter or encounter.user_id != session['user_id']:
+        return jsonify({'error': 'Encounter not found'}), 404
+    
+    data = request.get_json()
+    
+    encounter.date = datetime.fromisoformat(data['date']).date()
+    encounter.time = datetime.fromisoformat(data['time']).time() if data.get('time') else None
+    encounter.position = data['position']
+    encounter.duration = data.get('duration')
+    encounter.rating = data.get('rating')
+    encounter.notes = data.get('notes', '')
+    
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/api/encounters/<int:encounter_id>', methods=['DELETE'])
+def delete_encounter(encounter_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    encounter = Encounter.query.get(encounter_id)
+    
+    if not encounter or encounter.user_id != session['user_id']:
+        return jsonify({'error': 'Encounter not found'}), 404
+    
+    db.session.delete(encounter)
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+# ============================================================================
+# API ROUTES - Comments
+# ============================================================================
+
+@app.route('/api/encounters/<int:encounter_id>/comments', methods=['GET'])
+def get_comments(encounter_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    encounter = Encounter.query.get(encounter_id)
+    
+    if not encounter:
+        return jsonify({'error': 'Encounter not found'}), 404
+    
+    # Check if user has access (owner or partner)
+    user = User.query.get(session['user_id'])
+    if encounter.user_id != session['user_id'] and encounter.user_id != user.partner_id:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    comments = Comment.query.filter_by(encounter_id=encounter_id).order_by(Comment.created_at.asc()).all()
+    
+    return jsonify([{
+        'id': c.id,
+        'text': c.text,
+        'rating': c.rating,
+        'commenter_username': User.query.get(c.commenter_id).username,
+        'is_own': c.commenter_id == session['user_id'],
+        'created_at': c.created_at.isoformat()
+    } for c in comments])
+
+@app.route('/api/encounters/<int:encounter_id>/comments', methods=['POST'])
+def add_comment(encounter_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    encounter = Encounter.query.get(encounter_id)
+    
+    if not encounter:
+        return jsonify({'error': 'Encounter not found'}), 404
+    
+    # Check if user has access (owner or partner)
+    user = User.query.get(session['user_id'])
+    if encounter.user_id != session['user_id'] and encounter.user_id != user.partner_id:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    data = request.get_json()
+    
+    comment = Comment(
+        encounter_id=encounter_id,
+        commenter_id=session['user_id'],
+        text=data['text'],
+        rating=data.get('rating')
+    )
+    
+    db.session.add(comment)
+    db.session.commit()
+    
+    # Notify encounter owner if comment is from partner
+    if encounter.user_id != session['user_id']:
+        message = f"💬 {user.username} commented on your intimate moment"
+        notify_partner(session['user_id'], encounter_id, 'new_comment', message)
+    
+    return jsonify({'success': True})
+
+# ============================================================================
+# API ROUTES - Statistics
+# ============================================================================
+
+@app.route('/api/stats', methods=['GET'])
+def get_stats():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    # Get encounters for current user and partner
+    user = User.query.get(session['user_id'])
+    user_ids = [user.id]
+    if user.partner_id:
+        user_ids.append(user.partner_id)
+    
+    all_encounters = Encounter.query.filter(Encounter.user_id.in_(user_ids)).all()
+    
+    # This month
+    first_day = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    this_month = Encounter.query.filter(
+        Encounter.user_id.in_(user_ids),
+        Encounter.date >= first_day.date()
+    ).count()
+    
+    # Average rating
+    ratings = [e.rating for e in all_encounters if e.rating]
+    avg_rating = sum(ratings) / len(ratings) if ratings else 0
+    
+    return jsonify({
+        'total': len(all_encounters),
+        'this_month': this_month,
+        'average_rating': round(avg_rating, 1)
+    })
+
+# ============================================================================
+# API ROUTES - Custom Icons
+# ============================================================================
+
+@app.route('/api/custom-icons', methods=['GET'])
+def get_custom_icons():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    icons = CustomIcon.query.filter_by(user_id=session['user_id']).all()
+    
+    return jsonify([{
+        'position_name': icon.position_name,
+        'svg_content': icon.svg_content
+    } for icon in icons])
+
+@app.route('/api/custom-icons', methods=['POST'])
+def upload_custom_icon():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    data = request.get_json()
+    position_name = data.get('position_name')
+    svg_content = data.get('svg_content', '')
+    
+    # Validate SVG
+    if not svg_content.strip().startswith('<svg') or not svg_content.strip().endswith('</svg>'):
+        return jsonify({'error': 'Invalid SVG format'}), 400
+    
+    # Check if icon already exists
+    existing_icon = CustomIcon.query.filter_by(
+        user_id=session['user_id'],
+        position_name=position_name
+    ).first()
+    
+    if existing_icon:
+        # Update existing
+        existing_icon.svg_content = svg_content
+    else:
+        # Create new
+        new_icon = CustomIcon(
+            user_id=session['user_id'],
+            position_name=position_name,
+            svg_content=svg_content
+        )
+        db.session.add(new_icon)
+    
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/api/custom-icons/<position_name>', methods=['DELETE'])
+def delete_custom_icon(position_name):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    icon = CustomIcon.query.filter_by(
+        user_id=session['user_id'],
+        position_name=position_name
+    ).first()
+    
+    if icon:
+        db.session.delete(icon)
+        db.session.commit()
+    
+    return jsonify({'success': True})
+
+# ============================================================================
+# DATABASE INITIALIZATION
+# ============================================================================
+
+with app.app_context():
+    db.create_all()
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
