@@ -37,7 +37,7 @@ services:
     environment:
       - FLASK_ENV=production
       - DATABASE_URL=postgresql://intimateuser:intimatepass@db:5432/intimatetracker
-      - SECRET_KEY=${SECRET_KEY:-change-this-secret-key-in-production}
+      - SECRET_KEY=1d6152cae5e4c8fb212ce0e5bc2a01b1d8826b574cd835ca576cf94a55bf0e37
       - SIGNAL_API_URL=http://signal:8080
       - SIGNAL_NUMBER=${SIGNAL_NUMBER}
       - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}

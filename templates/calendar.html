@@ -683,7 +683,7 @@
         // Load custom icons from database
         async function loadCustomIcons() {
             try {
-                const response = await fetch('/api/admin/icons');
+                const response = await fetch('/api/custom-icons');
                 if (response.ok) {
                     customIcons = await response.json();
                 }
