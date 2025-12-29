@@ -322,6 +322,7 @@ def register():
     
     session['user_id'] = new_user.id
     session['username'] = new_user.username
+    session.permanent = True
     
     return jsonify({'success': True})
 
