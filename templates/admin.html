@@ -78,6 +78,24 @@
             padding: 40px 20px;
         }
         
+        .auth-error {
+            background: #f8d7da;
+            border: 2px solid #f5c6cb;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .auth-error.show {
+            display: block;
+        }
+        
+        .auth-error h3 {
+            margin-bottom: 10px;
+        }
+        
         .page-title {
             font-family: 'Playfair Display', serif;
             font-size: 2.5rem;
@@ -293,6 +311,11 @@
     </div>
     
     <div class="container">
+        <div class="auth-error" id="authError">
+            <h3>⚠️ Not Authenticated</h3>
+            <p>You need to be logged in to manage icons. Please <a href="/">log in</a> and try again.</p>
+        </div>
+        
         <h1 class="page-title">Manage Position Icons</h1>
         <p class="page-subtitle">Upload custom SVG icons or use the default silhouettes</p>
         
@@ -326,7 +349,7 @@
             'other': 'Other'
         };
         
-        // Default SVG silhouettes (same as calendar)
+        // Default SVG silhouettes
         const defaultSVGs = {
             missionary: '<svg viewBox="0 0 100 100" class="position-svg"><ellipse cx="50" cy="22" rx="7" ry="8"/><path d="M43 30 Q43 28 45 28 L55 28 Q57 28 57 30 L58 42 Q58 45 56 47 L54 58 Q53 62 50 62 Q47 62 46 58 L44 47 Q42 45 42 42 Z M42 42 L35 48 Q33 50 33 52 L33 58 M58 42 L65 48 Q67 50 67 52 L67 58"/><ellipse cx="32" cy="65" rx="5" ry="6"/><path d="M27 71 Q27 69 29 69 L35 69 Q37 69 37 71 L37 78 Q37 80 36 82 L35 88 Q34 91 32 91 Q30 91 29 88 L28 82 Q27 80 27 78 Z M27 78 L22 84 M37 78 L42 84"/><ellipse cx="68" cy="65" rx="5" ry="6"/><path d="M63 71 Q63 69 65 69 L71 69 Q73 69 73 71 L73 78 Q73 80 72 82 L71 88 Q70 91 68 91 Q66 91 65 88 L64 82 Q63 80 63 78 Z M63 78 L58 84 M73 78 L78 84"/></svg>',
             doggy: '<svg viewBox="0 0 100 100" class="position-svg"><ellipse cx="30" cy="42" rx="6" ry="7"/><path d="M24 49 Q24 47 26 47 L34 47 Q36 47 36 49 L36 58 Q36 60 35 62 L34 70 Q33 73 30 73 Q27 73 26 70 L25 62 Q24 60 24 58 Z M24 58 L18 64 Q16 66 16 68 L16 72 M36 58 L42 64 Q44 66 44 68 L44 72 M25 70 L22 80 M35 70 L32 80"/><ellipse cx="65" cy="28" rx="6" ry="7"/><path d="M59 35 Q59 33 61 33 L69 33 Q71 33 71 35 L72 48 Q72 51 70 53 L69 63 Q68 67 65 67 Q62 67 61 63 L60 53 Q58 51 58 48 Z M58 48 L52 55 Q50 57 50 59 L50 64 M72 48 L78 55 Q80 57 80 59 L80 64 M60 63 L57 76 M70 63 L73 76"/></svg>',
@@ -343,33 +366,40 @@
         
         async function loadCustomIcons() {
             try {
-                // Try to load custom icons
-                const response = await fetch('/api/custom-icons');
+                const response = await fetch('/api/custom-icons', {
+                    credentials: 'include'
+                });
                 
-                // Check if response is ok and is JSON
-                if (response.ok) {
-                    const contentType = response.headers.get('content-type');
-                    if (contentType && contentType.includes('application/json')) {
-                        const icons = await response.json();
-                        
-                        // Convert array to object keyed by position_name
-                        customIcons = {};
-                        if (Array.isArray(icons)) {
-                            icons.forEach(icon => {
-                                customIcons[icon.position_name] = icon.svg_content;
-                            });
-                        }
-                    } else {
-                        console.warn('API returned non-JSON response, using defaults only');
-                    }
-                } else {
-                    console.warn(`API returned status ${response.status}, using defaults only`);
+                // Check if response is HTML (redirect/error page)
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    console.error('Not logged in - got HTML instead of JSON');
+                    document.getElementById('authError').classList.add('show');
+                    return;
                 }
-            } catch (error) {
-                console.error('Error loading custom icons (will use defaults):', error);
-            } finally {
-                // Always render icons even if loading fails
+                
+                const icons = await response.json();
+                
+                // Handle not authenticated
+                if (!response.ok) {
+                    if (icons.error === 'Not authenticated') {
+                        document.getElementById('authError').classList.add('show');
+                        return;
+                    }
+                }
+                
+                // Convert array to object keyed by position_name
+                customIcons = {};
+                if (Array.isArray(icons)) {
+                    icons.forEach(icon => {
+                        customIcons[icon.position_name] = icon.svg_content;
+                    });
+                }
+                
                 renderIcons();
+            } catch (error) {
+                console.error('Error loading custom icons:', error);
+                document.getElementById('authError').classList.add('show');
             }
         }
         
@@ -443,15 +473,24 @@
             }
             
             try {
-                // FIXED: Changed from /api/admin/icons to /api/custom-icons
                 const response = await fetch('/api/custom-icons', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ 
                         position_name: position,
                         svg_content: svgContent 
                     })
                 });
+                
+                // Check if response is HTML
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    errorMsg.textContent = 'Not authenticated - please log in first';
+                    errorMsg.classList.add('show');
+                    document.getElementById('authError').classList.add('show');
+                    return;
+                }
                 
                 const data = await response.json();
                 
@@ -479,10 +518,18 @@
             if (!confirm(`Revert ${positions[position]} to default icon?`)) return;
             
             try {
-                // FIXED: Changed from /api/admin/icons to /api/custom-icons
                 const response = await fetch(`/api/custom-icons/${position}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    credentials: 'include'
                 });
+                
+                // Check if response is HTML
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    alert('Not authenticated - please log in first');
+                    document.getElementById('authError').classList.add('show');
+                    return;
+                }
                 
                 if (response.ok) {
                     delete customIcons[position];
