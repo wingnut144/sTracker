@@ -1,15 +1,65 @@
 services:
-  web:
-    build: .
-   # ports:
-   #   - "5000:5000"
+  db:
+    image: postgres:15-alpine
+    container_name: stracker-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: intimateuser
+      POSTGRES_PASSWORD: intimatepass
+      POSTGRES_DB: intimatetracker
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - tracker-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U intimateuser -d intimatetracker"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  signal:
+    image: bbernhard/signal-cli-rest-api:latest
+    container_name: stracker-signal
+    restart: unless-stopped
+    environment:
+      - MODE=native
+    ports:
+      - "8080:8080"  # REST API port
     volumes:
-      - ./data:/app/data
+      - signal_data:/home/.local/share/signal-cli
+    networks:
+      - tracker-network
+
+  web:
+    build: .
+    container_name: stracker-web
+    restart: unless-stopped
     environment:
       - FLASK_ENV=production
-    restart: unless-stopped
+      - DATABASE_URL=postgresql://intimateuser:intimatepass@db:5432/intimatetracker
+      - SECRET_KEY=${SECRET_KEY:-change-this-secret-key-in-production}
+      
+      # Signal Configuration
+      - SIGNAL_API_URL=http://signal:8080
+      - SIGNAL_NUMBER=${SIGNAL_NUMBER}  # Your Signal phone number (+1234567890)
+      
+      # Twilio Configuration (fallback)
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      signal:
+        condition: service_started
+    networks:
+      - tracker-network
+
+volumes:
+  postgres_data:
+  signal_data:
 
 networks:
   tracker-network:
