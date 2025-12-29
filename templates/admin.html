@@ -347,7 +347,7 @@
             grid.innerHTML = '';
             
             Object.keys(positions).forEach(position => {
-                const positionData = positions[position];
+                const positionName = positions[position];  // ← This is the string name
                 const isCustom = customIcons[position] !== undefined;
                 const svgContent = isCustom ? customIcons[position] : defaultSVGs[position];
                 
@@ -355,7 +355,7 @@
                 card.className = 'icon-card';
                 card.innerHTML = `
                     <div class="icon-header">
-                        <h3 class="icon-title">${positionData.name}</h3>
+                        <h3 class="icon-title">${positionName}</h3>
                         <span class="icon-status ${isCustom ? 'custom' : ''}">${isCustom ? 'Custom' : 'Default'}</span>
                     </div>
                     
