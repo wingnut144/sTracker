@@ -683,10 +683,14 @@
         // Load custom icons from database
         async function loadCustomIcons() {
             try {
-                const response = await fetch('/api/custom-icons');
-                if (response.ok) {
-                    customIcons = await response.json();
-                }
+               const response = await fetch('/api/custom-icons');
+if (response.ok) {
+    const icons = await response.json();
+    // Convert array to object keyed by position_name
+    icons.forEach(icon => {
+        customIcons[icon.position_name] = icon.svg_content;
+    });
+}
             } catch (error) {
                 console.error('Error loading custom icons:', error);
             }
