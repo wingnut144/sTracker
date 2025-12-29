@@ -25,6 +25,27 @@ app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024  # 1MB max
 db = SQLAlchemy(app)
 
 # ============================================================================
+# CONTEXT PROCESSORS - Make variables available to all templates
+# ============================================================================
+
+@app.context_processor
+def inject_positions():
+    """Make positions dictionary available to all templates"""
+    return {
+        'positions': {
+            'missionary': 'Missionary',
+            'doggy': 'Doggy Style',
+            'cowgirl': 'Cowgirl',
+            'reverse_cowgirl': 'Reverse Cowgirl',
+            'spoon': 'Spooning',
+            'standing': 'Standing',
+            'oral': 'Oral',
+            '69': '69',
+            'other': 'Other'
+        }
+    }
+
+# ============================================================================
 # DATABASE MODELS
 # ============================================================================
 
@@ -327,6 +348,13 @@ def admin():
         return redirect(url_for('login'))
     
     return render_template('admin.html')
+
+@app.route('/proposals')
+def proposals():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('proposals.html')
 
 # ============================================================================
 # API ROUTES - Profile & Partner Management
