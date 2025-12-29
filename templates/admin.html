@@ -343,21 +343,32 @@
         
         async function loadCustomIcons() {
             try {
-                // FIXED: Changed from /api/admin/icons to /api/custom-icons
+                // Try to load custom icons
                 const response = await fetch('/api/custom-icons');
-                const icons = await response.json();
                 
-                // Convert array to object keyed by position_name
-                customIcons = {};
-                if (Array.isArray(icons)) {
-                    icons.forEach(icon => {
-                        customIcons[icon.position_name] = icon.svg_content;
-                    });
+                // Check if response is ok and is JSON
+                if (response.ok) {
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        const icons = await response.json();
+                        
+                        // Convert array to object keyed by position_name
+                        customIcons = {};
+                        if (Array.isArray(icons)) {
+                            icons.forEach(icon => {
+                                customIcons[icon.position_name] = icon.svg_content;
+                            });
+                        }
+                    } else {
+                        console.warn('API returned non-JSON response, using defaults only');
+                    }
+                } else {
+                    console.warn(`API returned status ${response.status}, using defaults only`);
                 }
-                
-                renderIcons();
             } catch (error) {
-                console.error('Error loading custom icons:', error);
+                console.error('Error loading custom icons (will use defaults):', error);
+            } finally {
+                // Always render icons even if loading fails
                 renderIcons();
             }
         }
