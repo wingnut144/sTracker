@@ -314,7 +314,17 @@
     </div>
     
     <script>
-        const positions = {{ positions | tojson }};
+        const positions = {
+            'missionary': 'Missionary',
+            'doggy': 'Doggy Style',
+            'cowgirl': 'Cowgirl',
+            'reverse_cowgirl': 'Reverse Cowgirl',
+            'spoon': 'Spooning',
+            'standing': 'Standing',
+            'oral': 'Oral',
+            '69': '69',
+            'other': 'Other'
+        };
         
         // Default SVG silhouettes (same as calendar)
         const defaultSVGs = {
@@ -322,10 +332,10 @@
             doggy: '<svg viewBox="0 0 100 100" class="position-svg"><ellipse cx="30" cy="42" rx="6" ry="7"/><path d="M24 49 Q24 47 26 47 L34 47 Q36 47 36 49 L36 58 Q36 60 35 62 L34 70 Q33 73 30 73 Q27 73 26 70 L25 62 Q24 60 24 58 Z M24 58 L18 64 Q16 66 16 68 L16 72 M36 58 L42 64 Q44 66 44 68 L44 72 M25 70 L22 80 M35 70 L32 80"/><ellipse cx="65" cy="28" rx="6" ry="7"/><path d="M59 35 Q59 33 61 33 L69 33 Q71 33 71 35 L72 48 Q72 51 70 53 L69 63 Q68 67 65 67 Q62 67 61 63 L60 53 Q58 51 58 48 Z M58 48 L52 55 Q50 57 50 59 L50 64 M72 48 L78 55 Q80 57 80 59 L80 64 M60 63 L57 76 M70 63 L73 76"/></svg>',
             cowgirl: '<svg viewBox="0 0 100 100" class="position-svg"><ellipse cx="50" cy="15" rx="6" ry="7"/><path d="M44 22 Q44 20 46 20 L54 20 Q56 20 56 22 L57 35 Q57 38 55 40 L54 50 Q53 54 50 54 Q47 54 46 50 L45 40 Q43 38 43 35 Z M43 35 L37 41 Q35 43 35 45 L35 50 M57 35 L63 41 Q65 43 65 45 L65 50 M45 50 L42 62 Q41 65 41 67 L41 70 M55 50 L58 62 Q59 65 59 67 L59 70"/><ellipse cx="50" cy="70" rx="5" ry="6"/><path d="M45 76 Q45 74 47 74 L53 74 Q55 74 55 76 L55 83 Q55 85 54 87 L53 92 Q52 95 50 95 Q48 95 47 92 L46 87 Q45 85 45 83 Z M45 83 L40 88 M55 83 L60 88"/></svg>',
             reverse_cowgirl: '<svg viewBox="0 0 100 100" class="position-svg"><ellipse cx="50" cy="15" rx="6" ry="7"/><path d="M44 22 Q44 20 46 20 L54 20 Q56 20 56 22 L57 35 Q57 38 55 40 L54 50 Q53 54 50 54 Q47 54 46 50 L45 40 Q43 38 43 35 Z M43 35 L37 41 Q35 43 35 45 L35 50 M57 35 L63 41 Q65 43 65 45 L65 50 M45 50 L41 62 Q40 65 40 67 L40 70 M55 50 L59 62 Q60 65 60 67 L60 70"/><ellipse cx="50" cy="74" rx="5" ry="6"/><path d="M45 80 Q45 78 47 78 L53 78 Q55 78 55 80 L55 87 Q55 89 54 91 L53 95 Q52 98 50 98 Q48 98 47 95 L46 91 Q45 89 45 87 Z"/></svg>',
-            spooning: '<svg viewBox="0 0 100 100" class="position-svg"><ellipse cx="32" cy="36" rx="5" ry="6"/><path d="M27 42 Q27 40 29 40 L35 40 Q37 40 37 42 L37 52 Q37 54 36 56 L35 65 Q34 68 32 68 Q30 68 29 65 L28 56 Q27 54 27 52 Z M27 52 L22 58 Q20 60 20 62 L20 66 M37 52 L42 58 Q44 60 44 62 L44 66 M28 65 L24 76 M36 65 L32 76"/><ellipse cx="58" cy="40" rx="5" ry="6"/><path d="M53 46 Q53 44 55 44 L61 44 Q63 44 63 46 L63 56 Q63 58 62 60 L61 69 Q60 72 58 72 Q56 72 55 69 L54 60 Q53 58 53 56 Z M53 56 L48 62 Q46 64 46 66 L46 70 M63 56 L68 62 Q70 64 70 66 L70 70 M54 69 L50 80 M62 69 L58 80"/></svg>',
+            spoon: '<svg viewBox="0 0 100 100" class="position-svg"><ellipse cx="32" cy="36" rx="5" ry="6"/><path d="M27 42 Q27 40 29 40 L35 40 Q37 40 37 42 L37 52 Q37 54 36 56 L35 65 Q34 68 32 68 Q30 68 29 65 L28 56 Q27 54 27 52 Z M27 52 L22 58 Q20 60 20 62 L20 66 M37 52 L42 58 Q44 60 44 62 L44 66 M28 65 L24 76 M36 65 L32 76"/><ellipse cx="58" cy="40" rx="5" ry="6"/><path d="M53 46 Q53 44 55 44 L61 44 Q63 44 63 46 L63 56 Q63 58 62 60 L61 69 Q60 72 58 72 Q56 72 55 69 L54 60 Q53 58 53 56 Z M53 56 L48 62 Q46 64 46 66 L46 70 M63 56 L68 62 Q70 64 70 66 L70 70 M54 69 L50 80 M62 69 L58 80"/></svg>',
             standing: '<svg viewBox="0 0 100 100" class="position-svg"><ellipse cx="35" cy="18" rx="5" ry="6"/><path d="M30 24 Q30 22 32 22 L38 22 Q40 22 40 24 L40 34 Q40 36 39 38 L38 50 Q37 53 35 53 Q33 53 32 50 L31 38 Q30 36 30 34 Z M30 34 L25 40 Q23 42 23 44 L23 48 M40 34 L45 40 Q47 42 47 44 L47 48 M31 50 L28 68 Q27 72 27 74 L27 78 M39 50 L42 68 Q43 72 43 74 L43 78"/><ellipse cx="62" cy="22" rx="5" ry="6"/><path d="M57 28 Q57 26 59 26 L65 26 Q67 26 67 28 L67 38 Q67 40 66 42 L65 54 Q64 57 62 57 Q60 57 59 54 L58 42 Q57 40 57 38 Z M57 38 L52 44 Q50 46 50 48 L50 52 M67 38 L72 44 Q74 46 74 48 L74 52 M58 54 L55 72 Q54 76 54 78 L54 82 M66 54 L69 72 Q70 76 70 78 L70 82"/></svg>',
             oral: '<svg viewBox="0 0 100 100" class="position-svg"><ellipse cx="50" cy="22" rx="6" ry="7"/><path d="M44 29 Q44 27 46 27 L54 27 Q56 27 56 29 L57 42 Q57 45 55 47 L54 57 Q53 61 50 61 Q47 61 46 57 L45 47 Q43 45 43 42 Z M43 42 L37 48 Q35 50 35 52 L35 57 M57 42 L63 48 Q65 50 65 52 L65 57 M45 57 L41 69 Q40 72 40 74 L40 77 M55 57 L59 69 Q60 72 60 74 L60 77"/><ellipse cx="50" cy="68" rx="5" ry="6"/><path d="M45 74 Q45 72 47 72 L53 72 Q55 72 55 74 L55 82 Q55 84 54 86 L53 90 Q52 93 50 93 Q48 93 47 90 L46 86 Q45 84 45 82 Z"/></svg>',
-            anal: '<svg viewBox="0 0 100 100" class="position-svg"><ellipse cx="32" cy="38" rx="5" ry="6"/><path d="M27 44 Q27 42 29 42 L35 42 Q37 42 37 44 L37 54 Q37 56 36 58 L35 67 Q34 70 32 70 Q30 70 29 67 L28 58 Q27 56 27 54 Z M27 54 L21 60 Q19 62 19 64 L19 68 M37 54 L43 60 Q45 62 45 64 L45 68 M28 67 L24 78 M36 67 L32 78"/><ellipse cx="65" cy="32" rx="6" ry="7"/><path d="M59 39 Q59 37 61 37 L69 37 Q71 37 71 39 L72 52 Q72 55 70 57 L69 67 Q68 71 65 71 Q62 71 61 67 L60 57 Q58 55 58 52 Z M58 52 L52 59 Q50 61 50 63 L50 68 M72 52 L78 59 Q80 61 80 63 L80 68 M60 67 L56 80 M70 67 L74 80"/></svg>',
+            '69': '<svg viewBox="0 0 100 100" class="position-svg"><ellipse cx="32" cy="28" rx="5" ry="6"/><path d="M27 34 Q27 32 29 32 L35 32 Q37 32 37 34 L37 44 Q37 46 36 48 L35 57 Q34 60 32 60 Q30 60 29 57 L28 48 Q27 46 27 44 Z M27 44 L22 50 M37 44 L42 50"/><ellipse cx="68" cy="72" rx="5" ry="6"/><path d="M63 66 Q63 64 65 64 L71 64 Q73 64 73 66 L73 56 Q73 54 72 52 L71 43 Q70 40 68 40 Q66 40 65 43 L64 52 Q63 54 63 56 Z M63 56 L58 50 M73 56 L78 50"/></svg>',
             other: '<svg viewBox="0 0 100 100" class="position-svg"><ellipse cx="50" cy="28" rx="7" ry="8"/><path d="M43 36 Q43 34 45 34 L55 34 Q57 34 57 36 L58 50 Q58 53 56 55 L55 66 Q54 70 50 70 Q46 70 45 66 L44 55 Q42 53 42 50 Z M42 50 L35 57 Q33 59 33 61 L33 66 M58 50 L65 57 Q67 59 67 61 L67 66 M44 66 L39 80 M56 66 L61 80"/></svg>'
         };
         
@@ -333,8 +343,18 @@
         
         async function loadCustomIcons() {
             try {
-                const response = await fetch('/api/admin/icons');
-                customIcons = await response.json();
+                // FIXED: Changed from /api/admin/icons to /api/custom-icons
+                const response = await fetch('/api/custom-icons');
+                const icons = await response.json();
+                
+                // Convert array to object keyed by position_name
+                customIcons = {};
+                if (Array.isArray(icons)) {
+                    icons.forEach(icon => {
+                        customIcons[icon.position_name] = icon.svg_content;
+                    });
+                }
+                
                 renderIcons();
             } catch (error) {
                 console.error('Error loading custom icons:', error);
@@ -347,7 +367,7 @@
             grid.innerHTML = '';
             
             Object.keys(positions).forEach(position => {
-                const positionName = positions[position];  // ← This is the string name
+                const positionName = positions[position];
                 const isCustom = customIcons[position] !== undefined;
                 const svgContent = isCustom ? customIcons[position] : defaultSVGs[position];
                 
@@ -412,10 +432,14 @@
             }
             
             try {
-                const response = await fetch(`/api/admin/icons/${position}`, {
+                // FIXED: Changed from /api/admin/icons to /api/custom-icons
+                const response = await fetch('/api/custom-icons', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ svg_content: svgContent })
+                    body: JSON.stringify({ 
+                        position_name: position,
+                        svg_content: svgContent 
+                    })
                 });
                 
                 const data = await response.json();
@@ -434,16 +458,18 @@
                     errorMsg.classList.add('show');
                 }
             } catch (error) {
-                errorMsg.textContent = 'Network error. Please try again.';
+                errorMsg.textContent = 'Network error: ' + error.message;
                 errorMsg.classList.add('show');
+                console.error('Save error:', error);
             }
         }
         
         async function revertIcon(position) {
-            if (!confirm(`Revert ${positions[position].name} to default icon?`)) return;
+            if (!confirm(`Revert ${positions[position]} to default icon?`)) return;
             
             try {
-                const response = await fetch(`/api/admin/icons/${position}`, {
+                // FIXED: Changed from /api/admin/icons to /api/custom-icons
+                const response = await fetch(`/api/custom-icons/${position}`, {
                     method: 'DELETE'
                 });
                 
@@ -453,6 +479,7 @@
                 }
             } catch (error) {
                 alert('Failed to revert icon. Please try again.');
+                console.error('Revert error:', error);
             }
         }
         
