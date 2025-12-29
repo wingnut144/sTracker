@@ -24,7 +24,7 @@ services:
     environment:
       - MODE=native
     ports:
-      - "8080:8080"  # REST API port
+      - "8080:8080"
     volumes:
       - signal_data:/home/.local/share/signal-cli
     networks:
@@ -38,12 +38,8 @@ services:
       - FLASK_ENV=production
       - DATABASE_URL=postgresql://intimateuser:intimatepass@db:5432/intimatetracker
       - SECRET_KEY=${SECRET_KEY:-change-this-secret-key-in-production}
-      
-      # Signal Configuration
       - SIGNAL_API_URL=http://signal:8080
-      - SIGNAL_NUMBER=${SIGNAL_NUMBER}  # Your Signal phone number (+1234567890)
-      
-      # Twilio Configuration (fallback)
+      - SIGNAL_NUMBER=${SIGNAL_NUMBER}
       - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
       - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
       - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
