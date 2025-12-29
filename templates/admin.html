@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Icon Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Cormorant:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #d4a5a5;
+            --secondary: #9c7a7a;
+            --accent: #c98686;
+            --bg: #faf8f6;
+            --surface: #ffffff;
+            --text: #4a3838;
+            --text-light: #8b7373;
+            --shadow: rgba(138, 90, 90, 0.12);
+            --border: rgba(212, 165, 165, 0.2);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Cormorant', serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: white;
+            padding: 30px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+        
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            border-radius: 8px;
+            font-family: 'Cormorant', serif;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .btn:hover {
+            background: white;
+            color: var(--secondary);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .page-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            color: var(--secondary);
+            margin-bottom: 10px;
+        }
+        
+        .page-subtitle {
+            color: var(--text-light);
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+        }
+        
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .icon-card {
+            background: var(--surface);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 15px var(--shadow);
+        }
+        
+        .icon-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .icon-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: var(--secondary);
+        }
+        
+        .icon-status {
+            font-size: 0.9rem;
+            padding: 5px 12px;
+            border-radius: 20px;
+            background: var(--bg);
+            color: var(--text-light);
+        }
+        
+        .icon-status.custom {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .icon-preview {
+            width: 100%;
+            height: 150px;
+            background: var(--bg);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            border: 2px solid var(--border);
+        }
+        
+        .icon-preview svg {
+            width: 80px;
+            height: 80px;
+            fill: var(--secondary);
+        }
+        
+        .icon-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Cormorant', serif;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-upload {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-upload:hover {
+            background: var(--accent);
+            transform: translateY(-2px);
+        }
+        
+        .btn-revert {
+            background: var(--bg);
+            color: var(--text);
+            border: 2px solid var(--border);
+        }
+        
+        .btn-revert:hover {
+            background: var(--surface);
+            border-color: var(--secondary);
+        }
+        
+        .btn-revert:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .upload-area {
+            margin-top: 15px;
+            padding: 20px;
+            background: var(--bg);
+            border: 2px dashed var(--border);
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(212, 165, 165, 0.05);
+        }
+        
+        .upload-area.active {
+            display: block;
+        }
+        
+        .upload-area.hidden {
+            display: none;
+        }
+        
+        .success-msg, .error-msg {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 1rem;
+            display: none;
+        }
+        
+        .success-msg {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error-msg {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .success-msg.show, .error-msg.show {
+            display: block;
+        }
+        
+        .instructions {
+            background: var(--surface);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px var(--shadow);
+            margin-bottom: 30px;
+        }
+        
+        .instructions h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--secondary);
+            margin-bottom: 15px;
+        }
+        
+        .instructions ul {
+            margin-left: 25px;
+            line-height: 1.8;
+        }
+        
+        .instructions code {
+            background: var(--bg);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔧 Icon Management</h1>
+        <div class="header-actions">
+            <a href="/" class="btn">← Back to Calendar</a>
+            <button class="btn" onclick="window.location.href='/logout'">Sign Out</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h1 class="page-title">Manage Position Icons</h1>
+        <p class="page-subtitle">Upload custom SVG icons or use the default silhouettes</p>
+        
+        <div class="instructions">
+            <h2>How to Upload Custom Icons</h2>
+            <ul>
+                <li>Click "Upload Custom SVG" for any position</li>
+                <li>Paste your SVG code (must start with <code>&lt;svg</code> and end with <code>&lt;/svg&gt;</code>)</li>
+                <li>SVG must be valid XML format</li>
+                <li>File size limit: 1MB per icon</li>
+                <li>You can revert to default icons anytime</li>
+                <li>Custom icons are stored in the database and persist across sessions</li>
+            </ul>
+        </div>
+        
+        <div class="icon-grid" id="icon-grid">
+            <!-- Icons will be loaded here -->
+        </div>
+    </div>
+    
+    <script>
+        const positions = {{ positions | tojson }};
+        
+        // Default SVG silhouettes (same as calendar)
+        const defaultSVGs = {
+            missionary: '<svg viewBox="0 0 100 100" class="position-svg"><ellipse cx="50" cy="22" rx="7" ry="8"/><path d="M43 30 Q43 28 45 28 L55 28 Q57 28 57 30 L58 42 Q58 45 56 47 L54 58 Q53 62 50 62 Q47 62 46 58 L44 47 Q42 45 42 42 Z M42 42 L35 48 Q33 50 33 52 L33 58 M58 42 L65 48 Q67 50 67 52 L67 58"/><ellipse cx="32" cy="65" rx="5" ry="6"/><path d="M27 71 Q27 69 29 69 L35 69 Q37 69 37 71 L37 78 Q37 80 36 82 L35 88 Q34 91 32 91 Q30 91 29 88 L28 82 Q27 80 27 78 Z M27 78 L22 84 M37 78 L42 84"/><ellipse cx="68" cy="65" rx="5" ry="6"/><path d="M63 71 Q63 69 65 69 L71 69 Q73 69 73 71 L73 78 Q73 80 72 82 L71 88 Q70 91 68 91 Q66 91 65 88 L64 82 Q63 80 63 78 Z M63 78 L58 84 M73 78 L78 84"/></svg>',
+            doggy: '<svg viewBox="0 0 100 100" class="position-svg"><ellipse cx="30" cy="42" rx="6" ry="7"/><path d="M24 49 Q24 47 26 47 L34 47 Q36 47 36 49 L36 58 Q36 60 35 62 L34 70 Q33 73 30 73 Q27 73 26 70 L25 62 Q24 60 24 58 Z M24 58 L18 64 Q16 66 16 68 L16 72 M36 58 L42 64 Q44 66 44 68 L44 72 M25 70 L22 80 M35 70 L32 80"/><ellipse cx="65" cy="28" rx="6" ry="7"/><path d="M59 35 Q59 33 61 33 L69 33 Q71 33 71 35 L72 48 Q72 51 70 53 L69 63 Q68 67 65 67 Q62 67 61 63 L60 53 Q58 51 58 48 Z M58 48 L52 55 Q50 57 50 59 L50 64 M72 48 L78 55 Q80 57 80 59 L80 64 M60 63 L57 76 M70 63 L73 76"/></svg>',
+            cowgirl: '<svg viewBox="0 0 100 100" class="position-svg"><ellipse cx="50" cy="15" rx="6" ry="7"/><path d="M44 22 Q44 20 46 20 L54 20 Q56 20 56 22 L57 35 Q57 38 55 40 L54 50 Q53 54 50 54 Q47 54 46 50 L45 40 Q43 38 43 35 Z M43 35 L37 41 Q35 43 35 45 L35 50 M57 35 L63 41 Q65 43 65 45 L65 50 M45 50 L42 62 Q41 65 41 67 L41 70 M55 50 L58 62 Q59 65 59 67 L59 70"/><ellipse cx="50" cy="70" rx="5" ry="6"/><path d="M45 76 Q45 74 47 74 L53 74 Q55 74 55 76 L55 83 Q55 85 54 87 L53 92 Q52 95 50 95 Q48 95 47 92 L46 87 Q45 85 45 83 Z M45 83 L40 88 M55 83 L60 88"/></svg>',
+            reverse_cowgirl: '<svg viewBox="0 0 100 100" class="position-svg"><ellipse cx="50" cy="15" rx="6" ry="7"/><path d="M44 22 Q44 20 46 20 L54 20 Q56 20 56 22 L57 35 Q57 38 55 40 L54 50 Q53 54 50 54 Q47 54 46 50 L45 40 Q43 38 43 35 Z M43 35 L37 41 Q35 43 35 45 L35 50 M57 35 L63 41 Q65 43 65 45 L65 50 M45 50 L41 62 Q40 65 40 67 L40 70 M55 50 L59 62 Q60 65 60 67 L60 70"/><ellipse cx="50" cy="74" rx="5" ry="6"/><path d="M45 80 Q45 78 47 78 L53 78 Q55 78 55 80 L55 87 Q55 89 54 91 L53 95 Q52 98 50 98 Q48 98 47 95 L46 91 Q45 89 45 87 Z"/></svg>',
+            spooning: '<svg viewBox="0 0 100 100" class="position-svg"><ellipse cx="32" cy="36" rx="5" ry="6"/><path d="M27 42 Q27 40 29 40 L35 40 Q37 40 37 42 L37 52 Q37 54 36 56 L35 65 Q34 68 32 68 Q30 68 29 65 L28 56 Q27 54 27 52 Z M27 52 L22 58 Q20 60 20 62 L20 66 M37 52 L42 58 Q44 60 44 62 L44 66 M28 65 L24 76 M36 65 L32 76"/><ellipse cx="58" cy="40" rx="5" ry="6"/><path d="M53 46 Q53 44 55 44 L61 44 Q63 44 63 46 L63 56 Q63 58 62 60 L61 69 Q60 72 58 72 Q56 72 55 69 L54 60 Q53 58 53 56 Z M53 56 L48 62 Q46 64 46 66 L46 70 M63 56 L68 62 Q70 64 70 66 L70 70 M54 69 L50 80 M62 69 L58 80"/></svg>',
+            standing: '<svg viewBox="0 0 100 100" class="position-svg"><ellipse cx="35" cy="18" rx="5" ry="6"/><path d="M30 24 Q30 22 32 22 L38 22 Q40 22 40 24 L40 34 Q40 36 39 38 L38 50 Q37 53 35 53 Q33 53 32 50 L31 38 Q30 36 30 34 Z M30 34 L25 40 Q23 42 23 44 L23 48 M40 34 L45 40 Q47 42 47 44 L47 48 M31 50 L28 68 Q27 72 27 74 L27 78 M39 50 L42 68 Q43 72 43 74 L43 78"/><ellipse cx="62" cy="22" rx="5" ry="6"/><path d="M57 28 Q57 26 59 26 L65 26 Q67 26 67 28 L67 38 Q67 40 66 42 L65 54 Q64 57 62 57 Q60 57 59 54 L58 42 Q57 40 57 38 Z M57 38 L52 44 Q50 46 50 48 L50 52 M67 38 L72 44 Q74 46 74 48 L74 52 M58 54 L55 72 Q54 76 54 78 L54 82 M66 54 L69 72 Q70 76 70 78 L70 82"/></svg>',
+            oral: '<svg viewBox="0 0 100 100" class="position-svg"><ellipse cx="50" cy="22" rx="6" ry="7"/><path d="M44 29 Q44 27 46 27 L54 27 Q56 27 56 29 L57 42 Q57 45 55 47 L54 57 Q53 61 50 61 Q47 61 46 57 L45 47 Q43 45 43 42 Z M43 42 L37 48 Q35 50 35 52 L35 57 M57 42 L63 48 Q65 50 65 52 L65 57 M45 57 L41 69 Q40 72 40 74 L40 77 M55 57 L59 69 Q60 72 60 74 L60 77"/><ellipse cx="50" cy="68" rx="5" ry="6"/><path d="M45 74 Q45 72 47 72 L53 72 Q55 72 55 74 L55 82 Q55 84 54 86 L53 90 Q52 93 50 93 Q48 93 47 90 L46 86 Q45 84 45 82 Z"/></svg>',
+            anal: '<svg viewBox="0 0 100 100" class="position-svg"><ellipse cx="32" cy="38" rx="5" ry="6"/><path d="M27 44 Q27 42 29 42 L35 42 Q37 42 37 44 L37 54 Q37 56 36 58 L35 67 Q34 70 32 70 Q30 70 29 67 L28 58 Q27 56 27 54 Z M27 54 L21 60 Q19 62 19 64 L19 68 M37 54 L43 60 Q45 62 45 64 L45 68 M28 67 L24 78 M36 67 L32 78"/><ellipse cx="65" cy="32" rx="6" ry="7"/><path d="M59 39 Q59 37 61 37 L69 37 Q71 37 71 39 L72 52 Q72 55 70 57 L69 67 Q68 71 65 71 Q62 71 61 67 L60 57 Q58 55 58 52 Z M58 52 L52 59 Q50 61 50 63 L50 68 M72 52 L78 59 Q80 61 80 63 L80 68 M60 67 L56 80 M70 67 L74 80"/></svg>',
+            other: '<svg viewBox="0 0 100 100" class="position-svg"><ellipse cx="50" cy="28" rx="7" ry="8"/><path d="M43 36 Q43 34 45 34 L55 34 Q57 34 57 36 L58 50 Q58 53 56 55 L55 66 Q54 70 50 70 Q46 70 45 66 L44 55 Q42 53 42 50 Z M42 50 L35 57 Q33 59 33 61 L33 66 M58 50 L65 57 Q67 59 67 61 L67 66 M44 66 L39 80 M56 66 L61 80"/></svg>'
+        };
+        
+        let customIcons = {};
+        
+        async function loadCustomIcons() {
+            try {
+                const response = await fetch('/api/admin/icons');
+                customIcons = await response.json();
+                renderIcons();
+            } catch (error) {
+                console.error('Error loading custom icons:', error);
+                renderIcons();
+            }
+        }
+        
+        function renderIcons() {
+            const grid = document.getElementById('icon-grid');
+            grid.innerHTML = '';
+            
+            Object.keys(positions).forEach(position => {
+                const positionData = positions[position];
+                const isCustom = customIcons[position] !== undefined;
+                const svgContent = isCustom ? customIcons[position] : defaultSVGs[position];
+                
+                const card = document.createElement('div');
+                card.className = 'icon-card';
+                card.innerHTML = `
+                    <div class="icon-header">
+                        <h3 class="icon-title">${positionData.name}</h3>
+                        <span class="icon-status ${isCustom ? 'custom' : ''}">${isCustom ? 'Custom' : 'Default'}</span>
+                    </div>
+                    
+                    <div class="icon-preview" id="preview-${position}">
+                        ${svgContent}
+                    </div>
+                    
+                    <div class="upload-area hidden" id="upload-${position}">
+                        <p>Paste SVG code below:</p>
+                        <textarea id="svg-${position}" placeholder="<svg viewBox='0 0 100 100'>...</svg>"></textarea>
+                        <div class="icon-actions">
+                            <button class="action-btn btn-upload" onclick="saveIcon('${position}')">Save Icon</button>
+                            <button class="action-btn btn-revert" onclick="cancelUpload('${position}')">Cancel</button>
+                        </div>
+                        <div class="success-msg" id="success-${position}"></div>
+                        <div class="error-msg" id="error-${position}"></div>
+                    </div>
+                    
+                    <div class="icon-actions" id="actions-${position}">
+                        <button class="action-btn btn-upload" onclick="showUpload('${position}')">Upload Custom SVG</button>
+                        <button class="action-btn btn-revert" onclick="revertIcon('${position}')" ${!isCustom ? 'disabled' : ''}>
+                            Revert to Default
+                        </button>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+        
+        function showUpload(position) {
+            document.getElementById(`upload-${position}`).classList.remove('hidden');
+            document.getElementById(`actions-${position}`).style.display = 'none';
+        }
+        
+        function cancelUpload(position) {
+            document.getElementById(`upload-${position}`).classList.add('hidden');
+            document.getElementById(`actions-${position}`).style.display = 'flex';
+            document.getElementById(`svg-${position}`).value = '';
+        }
+        
+        async function saveIcon(position) {
+            const svgContent = document.getElementById(`svg-${position}`).value.trim();
+            const successMsg = document.getElementById(`success-${position}`);
+            const errorMsg = document.getElementById(`error-${position}`);
+            
+            successMsg.classList.remove('show');
+            errorMsg.classList.remove('show');
+            
+            if (!svgContent) {
+                errorMsg.textContent = 'Please paste SVG content';
+                errorMsg.classList.add('show');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/admin/icons/${position}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ svg_content: svgContent })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    successMsg.textContent = 'Icon saved successfully!';
+                    successMsg.classList.add('show');
+                    customIcons[position] = svgContent;
+                    
+                    setTimeout(() => {
+                        cancelUpload(position);
+                        renderIcons();
+                    }, 1500);
+                } else {
+                    errorMsg.textContent = data.error || 'Failed to save icon';
+                    errorMsg.classList.add('show');
+                }
+            } catch (error) {
+                errorMsg.textContent = 'Network error. Please try again.';
+                errorMsg.classList.add('show');
+            }
+        }
+        
+        async function revertIcon(position) {
+            if (!confirm(`Revert ${positions[position].name} to default icon?`)) return;
+            
+            try {
+                const response = await fetch(`/api/admin/icons/${position}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    delete customIcons[position];
+                    renderIcons();
+                }
+            } catch (error) {
+                alert('Failed to revert icon. Please try again.');
+            }
+        }
+        
+        // Load custom icons on page load
+        loadCustomIcons();
+    </script>
+</body>
+</html>
