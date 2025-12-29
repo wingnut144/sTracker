@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Intimate Moments</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Cormorant:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #d4a5a5;
+            --secondary: #9c7a7a;
+            --accent: #c98686;
+            --bg: #faf8f6;
+            --surface: #ffffff;
+            --text: #4a3838;
+            --text-light: #8b7373;
+            --shadow: rgba(138, 90, 90, 0.12);
+            --border: rgba(212, 165, 165, 0.2);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Cormorant', serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: white;
+            padding: 30px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+        
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            border-radius: 8px;
+            font-family: 'Cormorant', serif;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            background: white;
+            color: var(--secondary);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .page-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            color: var(--secondary);
+            margin-bottom: 10px;
+        }
+        
+        .page-subtitle {
+            color: var(--text-light);
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+        
+        .card {
+            background: var(--surface);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 15px var(--shadow);
+        }
+        
+        .card-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--secondary);
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--secondary);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Cormorant', serif;
+            font-size: 1.1rem;
+            background: var(--bg);
+            color: var(--text);
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--surface);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        input[type="checkbox"] {
+            width: auto;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Cormorant', serif;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 165, 165, 0.4);
+        }
+        
+        .partner-code {
+            background: var(--bg);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px dashed var(--border);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .partner-code-value {
+            font-family: monospace;
+            font-size: 1.3rem;
+            color: var(--accent);
+            font-weight: 600;
+        }
+        
+        .partner-status {
+            background: var(--bg);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .partner-status.connected {
+            border: 2px solid var(--primary);
+        }
+        
+        .notification-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .notification {
+            background: var(--bg);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+        
+        .notification:hover {
+            background: rgba(212, 165, 165, 0.1);
+        }
+        
+        .notification.unread {
+            border-left-color: var(--accent);
+            background: rgba(201, 134, 134, 0.1);
+        }
+        
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .notification-type {
+            font-weight: 600;
+            color: var(--secondary);
+        }
+        
+        .notification-time {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        
+        .notification-message {
+            color: var(--text);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-light);
+            font-style: italic;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .stat {
+            text-align: center;
+            padding: 20px;
+            background: var(--bg);
+            border-radius: 10px;
+        }
+        
+        .stat-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--secondary);
+            font-weight: 600;
+        }
+        
+        .stat-label {
+            color: var(--text-light);
+            font-size: 1rem;
+            margin-top: 5px;
+        }
+        
+        .success-msg, .error-msg {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .success-msg {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .error-msg {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .success-msg.show, .error-msg.show {
+            display: block;
+        }
+        
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text);
+            border: 2px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--surface);
+            border-color: var(--secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>👤 Profile</h1>
+        <div class="header-actions">
+            <a href="/" class="btn">← Back to Calendar</a>
+            <button class="btn" onclick="window.location.href='/logout'">Sign Out</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h1 class="page-title">Your Profile</h1>
+        <p class="page-subtitle">Manage your information and partner connection</p>
+        
+        <div class="grid">
+            <!-- Profile Information -->
+            <div class="card">
+                <h2 class="card-title">Personal Information</h2>
+                <form onsubmit="updateProfile(event)">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" value="{{ user.username }}" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="full_name" value="{{ user.full_name or '' }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="phone_number" value="{{ user.phone_number or '' }}" placeholder="+1234567890">
+                    </div>
+                    <div class="form-group checkbox-group">
+                        <input type="checkbox" id="sms_notifications" {{ 'checked' if user.sms_notifications else '' }}>
+                        <label for="sms_notifications">Enable SMS Notifications</label>
+                    </div>
+                    <button type="submit" class="submit-btn">Save Profile</button>
+                    <div class="success-msg" id="profile-success"></div>
+                    <div class="error-msg" id="profile-error"></div>
+                </form>
+            </div>
+            
+            <!-- Partner Connection -->
+            <div class="card">
+                <h2 class="card-title">Partner Connection</h2>
+                
+                {% if partner %}
+                <div class="partner-status connected">
+                    <p><strong>Connected to:</strong> {{ partner.username }}</p>
+                    <p style="color: var(--text-light); margin-top: 5px;">Your partner will be notified when you add encounters</p>
+                </div>
+                <button class="submit-btn btn-secondary" onclick="disconnectPartner()">Disconnect Partner</button>
+                {% else %}
+                <div class="partner-code">
+                    <p style="margin-bottom: 10px;">Your Partner Code:</p>
+                    <div class="partner-code-value">{{ user.partner_code }}</div>
+                    <p style="margin-top: 10px; color: var(--text-light); font-size: 0.9rem;">Share this code with your partner</p>
+                </div>
+                
+                <div class="form-group">
+                    <label>Connect to Partner</label>
+                    <input type="text" id="partner_code" placeholder="Enter partner's code">
+                </div>
+                <button class="submit-btn" onclick="connectPartner()">Connect</button>
+                {% endif %}
+                
+                <div class="success-msg" id="partner-success"></div>
+                <div class="error-msg" id="partner-error"></div>
+            </div>
+            
+            <!-- Private Notes -->
+            <div class="card">
+                <h2 class="card-title">Private Notes</h2>
+                <p style="color: var(--text-light); margin-bottom: 15px; font-size: 1rem;">Only you can see these notes</p>
+                <form onsubmit="updateNotes(event)">
+                    <textarea id="private_notes" placeholder="Your personal thoughts and reflections...">{{ user.private_notes or '' }}</textarea>
+                    <button type="submit" class="submit-btn" style="margin-top: 15px;">Save Notes</button>
+                    <div class="success-msg" id="notes-success"></div>
+                </form>
+            </div>
+            
+            <!-- Notifications -->
+            <div class="card">
+                <h2 class="card-title">Notifications</h2>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                    <span id="unread-count" style="color: var(--text-light);"></span>
+                    <button class="btn-secondary" onclick="markAllRead()" style="border: none; background: none; color: var(--accent); cursor: pointer; text-decoration: underline;">Mark all as read</button>
+                </div>
+                <div class="notification-list" id="notifications">
+                    <div class="empty-state">Loading notifications...</div>
+                </div>
+            </div>
+            
+            <!-- Personal Stats -->
+            <div class="card">
+                <h2 class="card-title">Your Stats</h2>
+                <div class="stats-grid" id="stats">
+                    <!-- Stats will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        async function updateProfile(e) {
+            e.preventDefault();
+            
+            const data = {
+                full_name: document.getElementById('full_name').value,
+                phone_number: document.getElementById('phone_number').value,
+                sms_notifications: document.getElementById('sms_notifications').checked
+            };
+            
+            try {
+                const response = await fetch('/api/profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    showMessage('profile-success', 'Profile updated successfully!');
+                } else {
+                    showMessage('profile-error', 'Failed to update profile');
+                }
+            } catch (error) {
+                showMessage('profile-error', 'Network error');
+            }
+        }
+        
+        async function updateNotes(e) {
+            e.preventDefault();
+            
+            const data = {
+                private_notes: document.getElementById('private_notes').value
+            };
+            
+            try {
+                const response = await fetch('/api/profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    showMessage('notes-success', 'Notes saved!');
+                }
+            } catch (error) {
+                console.error('Error saving notes');
+            }
+        }
+        
+        async function connectPartner() {
+            const partnerCode = document.getElementById('partner_code').value;
+            
+            if (!partnerCode) {
+                showMessage('partner-error', 'Please enter a partner code');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/partner/connect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ partner_code: partnerCode })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage('partner-success', data.message);
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showMessage('partner-error', data.error);
+                }
+            } catch (error) {
+                showMessage('partner-error', 'Network error');
+            }
+        }
+        
+        async function disconnectPartner() {
+            if (!confirm('Are you sure you want to disconnect from your partner?')) return;
+            
+            try {
+                const response = await fetch('/api/partner/disconnect', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Error disconnecting partner');
+            }
+        }
+        
+        async function loadNotifications() {
+            try {
+                const response = await fetch('/api/notifications');
+                const notifications = await response.json();
+                
+                const container = document.getElementById('notifications');
+                
+                if (notifications.length === 0) {
+                    container.innerHTML = '<div class="empty-state">No notifications yet</div>';
+                    return;
+                }
+                
+                container.innerHTML = notifications.map(n => `
+                    <div class="notification ${n.read ? '' : 'unread'}" onclick="viewNotification(${n.encounter_id}, ${n.id})">
+                        <div class="notification-header">
+                            <span class="notification-type">${n.type === 'new_encounter' ? '✨ New Encounter' : '💬 New Comment'}</span>
+                            <span class="notification-time">${formatTime(n.created_at)}</span>
+                        </div>
+                        <div class="notification-message">${n.message}</div>
+                    </div>
+                `).join('');
+                
+                updateUnreadCount();
+            } catch (error) {
+                console.error('Error loading notifications');
+            }
+        }
+        
+        async function viewNotification(encounterId, notificationId) {
+            // Mark as read
+            await fetch(`/api/notifications/${notificationId}/read`, { method: 'POST' });
+            
+            // Go to calendar
+            window.location.href = `/`;
+        }
+        
+        async function markAllRead() {
+            try {
+                await fetch('/api/notifications/mark_all_read', { method: 'POST' });
+                loadNotifications();
+            } catch (error) {
+                console.error('Error marking notifications as read');
+            }
+        }
+        
+        async function updateUnreadCount() {
+            try {
+                const response = await fetch('/api/notifications/unread_count');
+                const data = await response.json();
+                
+                const countEl = document.getElementById('unread-count');
+                if (data.count > 0) {
+                    countEl.textContent = `${data.count} unread`;
+                } else {
+                    countEl.textContent = 'All caught up!';
+                }
+            } catch (error) {
+                console.error('Error fetching unread count');
+            }
+        }
+        
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const stats = await response.json();
+                
+                document.getElementById('stats').innerHTML = `
+                    <div class="stat">
+                        <div class="stat-value">${stats.total_encounters}</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">${stats.this_month}</div>
+                        <div class="stat-label">This Month</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">${stats.average_rating.toFixed(1)}</div>
+                        <div class="stat-label">Avg Rating</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">${Object.keys(stats.position_counts).length}</div>
+                        <div class="stat-label">Positions Tried</div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading stats');
+            }
+        }
+        
+        function formatTime(isoString) {
+            const date = new Date(isoString);
+            const now = new Date();
+            const diff = now - date;
+            
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+            
+            if (minutes < 60) return `${minutes}m ago`;
+            if (hours < 24) return `${hours}h ago`;
+            return `${days}d ago`;
+        }
+        
+        function showMessage(elementId, message) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.classList.add('show');
+            
+            setTimeout(() => {
+                el.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Load data on page load
+        loadNotifications();
+        loadStats();
+        
+        // Poll for new notifications every 30 seconds
+        setInterval(updateUnreadCount, 30000);
+    </script>
+</body>
+</html>
