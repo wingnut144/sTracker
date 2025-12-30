@@ -13,15 +13,17 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+
+# Database configuration - supports both PostgreSQL and SQLite
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
     'DATABASE_URL',
-    'postgresql://user:password@db:5432/tracker'
+    'sqlite:///data/intimate_tracker.db'
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024  # 1MB max
 
-# Session cookie configuration (FIX FOR AUTHENTICATION ISSUES)
-app.config['SESSION_COOKIE_SECURE'] = True  # HTTPS only
+# Session cookie configuration
+app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_NAME'] = 'funtracker_session'
@@ -462,21 +464,17 @@ def get_proposed_encounters():
     if 'user_id' not in session:
         return jsonify({'error': 'Not authenticated'}), 401
     
-    user = User.query.get(session['user_id'])
-    
-    # Get proposals where user is either proposer or partner
+    # Get all proposals where user is either proposer or partner
     proposals = ProposedEncounter.query.filter(
-        db.or_(
-            ProposedEncounter.proposer_id == session['user_id'],
-            ProposedEncounter.partner_id == session['user_id']
-        )
-    ).order_by(ProposedEncounter.proposed_date.desc(), ProposedEncounter.proposed_time.desc()).all()
+        (ProposedEncounter.proposer_id == session['user_id']) |
+        (ProposedEncounter.partner_id == session['user_id'])
+    ).order_by(ProposedEncounter.proposed_date.desc()).all()
     
     return jsonify([{
         'id': p.id,
         'proposer_id': p.proposer_id,
-        'proposer_username': User.query.get(p.proposer_id).username,
         'partner_id': p.partner_id,
+        'proposer_username': User.query.get(p.proposer_id).username,
         'partner_username': User.query.get(p.partner_id).username,
         'proposed_date': p.proposed_date.isoformat(),
         'proposed_time': p.proposed_time.isoformat() if p.proposed_time else None,
@@ -486,21 +484,20 @@ def get_proposed_encounters():
         'decline_reason': p.decline_reason,
         'created_at': p.created_at.isoformat(),
         'responded_at': p.responded_at.isoformat() if p.responded_at else None,
-        'is_proposer': p.proposer_id == session['user_id'],
-        'needs_response': p.partner_id == session['user_id'] and p.status == 'pending'
+        'is_own': p.proposer_id == session['user_id']
     } for p in proposals])
 
 @app.route('/api/proposed-encounters', methods=['POST'])
-def create_proposed_encounter():
+def create_proposal():
     if 'user_id' not in session:
         return jsonify({'error': 'Not authenticated'}), 401
     
-    user = User.query.get(session['user_id'])
+    data = request.get_json()
     
+    # Get user's partner
+    user = User.query.get(session['user_id'])
     if not user.partner_id:
         return jsonify({'error': 'No partner connected'}), 400
-    
-    data = request.get_json()
     
     proposal = ProposedEncounter(
         proposer_id=session['user_id'],
@@ -508,8 +505,7 @@ def create_proposed_encounter():
         proposed_date=datetime.fromisoformat(data['proposed_date']).date(),
         proposed_time=datetime.fromisoformat(data['proposed_time']).time() if data.get('proposed_time') else None,
         position=data.get('position'),
-        notes=data.get('notes', ''),
-        status='pending'
+        notes=data.get('notes', '')
     )
     
     db.session.add(proposal)
@@ -723,7 +719,7 @@ def add_encounter():
     
     data = request.get_json()
     
-     # Convert empty strings to None for integer fields
+    # Convert empty strings to None for integer fields
     duration = data.get('duration')
     if duration == '':
         duration = None
@@ -738,11 +734,11 @@ def add_encounter():
     
     new_encounter = Encounter(
         user_id=session['user_id'],
-        date=datetime.strptime(data['date'], '%Y-%m-%d').date(),
-        time=datetime.strptime(data['time'], '%H:%M').time() if data.get('time') else None,
+        date=datetime.fromisoformat(data['date']).date(),
+        time=datetime.fromisoformat(data['time']).time() if data.get('time') else None,
         position=data['position'],
-        duration=duration,  # ← Fixed
-        rating=rating,      # ← Fixed
+        duration=duration,
+        rating=rating,
         notes=data.get('notes', '')
     )
     
@@ -753,10 +749,10 @@ def add_encounter():
     user = User.query.get(session['user_id'])
     if user.partner_id:
         message = f"💕 {user.username} added a new intimate moment"
-        notify_partner(session['user_id'], 'new_encounter', message, encounter_id=encounter.id)
+        notify_partner(session['user_id'], 'new_encounter', message, encounter_id=new_encounter.id)
     
     return jsonify({
-        'id': encounter.id,
+        'id': new_encounter.id,
         'success': True
     })
 
@@ -976,17 +972,6 @@ def delete_custom_icon(position_name):
 
 with app.app_context():
     db.create_all()
-
-@app.route('/test-session')
-def test_session():
-    """Debug route to test if sessions work"""
-    session['test'] = 'working'
-    session.permanent = True
-    return jsonify({
-        'status': 'success',
-        'session_data': dict(session),
-        'secret_key_length': len(app.config.get('SECRET_KEY', ''))
-    })
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
