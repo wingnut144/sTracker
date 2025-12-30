@@ -644,15 +644,11 @@
                         </div>
                         <input type="hidden" id="comment-rating-value">
                     </div>
-                    <div class="form-group">
-                        <label>Suggestions (optional)</label>
-                        <textarea id="comment-suggestions"></textarea>
-                    </div>
                     <button type="submit" class="submit-btn">Add Comment</button>
                 </form>
             </div>
             
-            <button class="delete-btn" onclick="deleteEncounter()">Delete Encounter</button>
+            <button class="delete-btn" id="delete-encounter-btn" style="display: none;" onclick="deleteEncounter()">🗑️ Delete This Encounter</button>
         </div>
     </div>
     
@@ -815,6 +811,10 @@ if (response.ok) {
             
             document.getElementById('encounter-details').innerHTML = `
                 <div class="form-group">
+                    <label>Added by</label>
+                    <p>${encounter.username}</p>
+                </div>
+                <div class="form-group">
                     <label>Date</label>
                     <p>${new Date(encounter.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 </div>
@@ -826,10 +826,11 @@ if (response.ok) {
                 ${encounter.duration ? `<div class="form-group"><label>Duration</label><p>${encounter.duration} minutes</p></div>` : ''}
                 ${encounter.rating ? `<div class="form-group"><label>Rating</label><p>${'★'.repeat(encounter.rating)}${'☆'.repeat(5 - encounter.rating)}</p></div>` : ''}
                 ${encounter.notes ? `<div class="form-group"><label>Notes</label><p>${encounter.notes}</p></div>` : ''}
+                ${encounter.is_own ? `<button class="delete-btn" onclick="deleteEncounter()">🗑️ Delete Encounter</button>` : ''}
             `;
             
             const commentsList = document.getElementById('comments-list');
-            if (encounter.comments.length > 0) {
+            if (encounter.comments && encounter.comments.length > 0) {
                 commentsList.innerHTML = encounter.comments.map(c => `
                     <div class="comment">
                         <div class="comment-header">
@@ -838,11 +839,10 @@ if (response.ok) {
                         </div>
                         ${c.rating ? `<div class="comment-rating">${'★'.repeat(c.rating)}${'☆'.repeat(5 - c.rating)}</div>` : ''}
                         <div class="comment-text">${c.text}</div>
-                        ${c.suggestions ? `<div class="comment-suggestions">💡 ${c.suggestions}</div>` : ''}
                     </div>
                 `).join('');
             } else {
-                commentsList.innerHTML = '<p style="color: var(--text-light); font-style: italic;">No comments yet</p>';
+                commentsList.innerHTML = '<p style="color: var(--text-light); font-style: italic;">No comments yet. Be the first to add feedback!</p>';
             }
             
             document.getElementById('view-modal').classList.add('show');
@@ -913,8 +913,7 @@ if (response.ok) {
             
             const data = {
                 text: document.getElementById('comment-text').value,
-                rating: document.getElementById('comment-rating-value').value,
-                suggestions: document.getElementById('comment-suggestions').value
+                rating: document.getElementById('comment-rating-value').value
             };
             
             const response = await fetch(`/api/encounters/${currentEncounterId}/comments`, {
