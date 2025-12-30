@@ -573,23 +573,23 @@
                 const stats = await response.json();
                 
                 document.getElementById('stats').innerHTML = `
-                    <div class="stat">
-                        <div class="stat-value">${stats.total_encounters}</div>
-                        <div class="stat-label">Total</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">${stats.this_month}</div>
-                        <div class="stat-label">This Month</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">${stats.average_rating.toFixed(1)}</div>
-                        <div class="stat-label">Avg Rating</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">${Object.keys(stats.position_counts).length}</div>
-                        <div class="stat-label">Positions Tried</div>
-                    </div>
-                `;
+    <div class="stat">
+        <div class="stat-value">${stats.total}</div>
+        <div class="stat-label">Total</div>
+    </div>
+    <div class="stat">
+        <div class="stat-value">${stats.this_month}</div>
+        <div class="stat-label">This Month</div>
+    </div>
+    <div class="stat">
+        <div class="stat-value">${stats.average_rating.toFixed(1)}</div>
+        <div class="stat-label">Avg Rating</div>
+    </div>
+    <div class="stat">
+        <div class="stat-value">${stats.pending_proposals}</div>
+        <div class="stat-label">Pending Proposals</div>
+    </div>
+`;
             } catch (error) {
                 console.error('Error loading stats');
             }
