@@ -746,7 +746,7 @@ def add_encounter():
         notes=data.get('notes', '')
     )
     
-    db.session.add(encounter)
+    db.session.add(new_encounter)
     db.session.commit()
     
     # Notify partner
