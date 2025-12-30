@@ -712,6 +712,63 @@ def get_encounters():
         'username': User.query.get(e.user_id).username
     } for e in encounters])
 
+@app.route('/api/encounters/<int:encounter_id>', methods=['GET'])
+def get_encounter_details(encounter_id):
+    """Get single encounter with all details and comments"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    encounter = Encounter.query.get(encounter_id)
+    
+    if not encounter:
+        return jsonify({'error': 'Encounter not found'}), 404
+    
+    # Check if user has access (owner or partner)
+    user = User.query.get(session['user_id'])
+    if encounter.user_id != session['user_id'] and encounter.user_id != user.partner_id:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    # Get comments
+    comments = Comment.query.filter_by(encounter_id=encounter_id).order_by(Comment.created_at.asc()).all()
+    
+    encounter_user = User.query.get(encounter.user_id)
+    
+    # Get position name from positions dict
+    positions_dict = {
+        'missionary': 'Missionary',
+        'doggy': 'Doggy Style',
+        'cowgirl': 'Cowgirl',
+        'reverse_cowgirl': 'Reverse Cowgirl',
+        'spoon': 'Spooning',
+        'standing': 'Standing',
+        'oral': 'Oral',
+        '69': '69',
+        'other': 'Other'
+    }
+    
+    return jsonify({
+        'id': encounter.id,
+        'date': encounter.date.isoformat(),
+        'time': encounter.time.isoformat() if encounter.time else None,
+        'position': encounter.position,
+        'position_name': positions_dict.get(encounter.position, encounter.position.title()),
+        'duration': encounter.duration,
+        'rating': encounter.rating,
+        'notes': encounter.notes,
+        'user_id': encounter.user_id,
+        'username': encounter_user.username,
+        'is_own': encounter.user_id == session['user_id'],
+        'comments': [{
+            'id': c.id,
+            'text': c.text,
+            'rating': c.rating,
+            'user': User.query.get(c.commenter_id).username,
+            'is_own': c.commenter_id == session['user_id'],
+            'created_at': c.created_at.isoformat()
+        } for c in comments]
+    })
+
+
 @app.route('/api/encounters', methods=['POST'])
 def add_encounter():
     if 'user_id' not in session:
