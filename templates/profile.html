@@ -471,7 +471,7 @@
             }
             
             try {
-                const response = await fetch('/api/partner/connect', {
+                const response = await fetch('/api/connect-partner', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ partner_code: partnerCode })
