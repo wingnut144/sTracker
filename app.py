@@ -723,13 +723,26 @@ def add_encounter():
     
     data = request.get_json()
     
-    encounter = Encounter(
+     # Convert empty strings to None for integer fields
+    duration = data.get('duration')
+    if duration == '':
+        duration = None
+    elif duration:
+        duration = int(duration)
+    
+    rating = data.get('rating')
+    if rating == '':
+        rating = None
+    elif rating:
+        rating = int(rating)
+    
+    new_encounter = Encounter(
         user_id=session['user_id'],
-        date=datetime.fromisoformat(data['date']).date(),
-        time=datetime.fromisoformat(data['time']).time() if data.get('time') else None,
+        date=datetime.strptime(data['date'], '%Y-%m-%d').date(),
+        time=datetime.strptime(data['time'], '%H:%M').time() if data.get('time') else None,
         position=data['position'],
-        duration=data.get('duration'),
-        rating=data.get('rating'),
+        duration=duration,  # ← Fixed
+        rating=rating,      # ← Fixed
         notes=data.get('notes', '')
     )
     
