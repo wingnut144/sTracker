@@ -717,11 +717,25 @@ def get_encounters():
         Encounter.user_id.in_(user_ids)
     ).all()
     
+    # Position names mapping
+    positions_dict = {
+        'missionary': 'Missionary',
+        'doggy': 'Doggy Style',
+        'cowgirl': 'Cowgirl',
+        'reverse_cowgirl': 'Reverse Cowgirl',
+        'spoon': 'Spooning',
+        'standing': 'Standing',
+        'oral': 'Oral',
+        '69': '69',
+        'other': 'Other'
+    }
+    
     return jsonify([{
         'id': e.id,
         'date': e.date.isoformat(),
         'time': e.time.isoformat() if e.time else None,
         'position': e.position,
+        'position_name': positions_dict.get(e.position, 'Other'),  # ← ADD THIS
         'duration': e.duration,
         'rating': e.rating,
         'notes': e.notes,
