@@ -864,6 +864,9 @@ def delete_encounter(encounter_id):
     if not encounter or encounter.user_id != session['user_id']:
         return jsonify({'error': 'Encounter not found'}), 404
     
+    # Delete associated notifications first
+    Notification.query.filter_by(encounter_id=encounter_id).delete()
+    
     db.session.delete(encounter)
     db.session.commit()
     
