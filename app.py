@@ -349,8 +349,8 @@ def profile():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     
-    user = User.query.get(session['user_id'])
-    return render_template('profile.html', user=user)
+    user = User.query.get(session['user_id'])  # ✅ Get user
+    return render_template('profile.html', user=user)  # ✅ Pass user
 
 @app.route('/admin')
 def admin():
