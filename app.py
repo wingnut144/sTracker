@@ -626,6 +626,10 @@ def cancel_proposal(proposal_id):
 # API ROUTES - Notifications
 # ============================================================================
 
+# ============================================================================
+# API ROUTES - Notifications
+# ============================================================================
+
 @app.route('/api/notifications', methods=['GET'])
 def get_notifications():
     if 'user_id' not in session:
@@ -652,6 +656,18 @@ def get_notifications():
         } for n in notifications],
         'unread_count': unread_count
     })
+
+@app.route('/api/notifications/unread_count', methods=['GET'])  # ← NEW ENDPOINT
+def get_unread_count():
+    if 'user_id' not in session:
+        return jsonify({'count': 0})
+    
+    unread_count = Notification.query.filter_by(
+        user_id=session['user_id'],
+        read=False
+    ).count()
+    
+    return jsonify({'count': unread_count})
 
 @app.route('/api/notifications/<int:notification_id>/mark-read', methods=['POST'])
 def mark_notification_read(notification_id):
