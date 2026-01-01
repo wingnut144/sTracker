@@ -299,6 +299,71 @@
             border-radius: 4px;
             font-family: monospace;
         }
+        /* ============================================================================
+   MOBILE RESPONSIVE STYLES
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .header {
+        padding: 20px 15px;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .btn {
+        padding: 8px 15px;
+        font-size: 0.95rem;
+        flex: 1;
+        min-width: 100px;
+    }
+    
+    .container {
+        padding: 10px;
+    }
+    
+    .admin-card {
+        padding: 20px;
+    }
+    
+    .admin-card h2 {
+        font-size: 1.3rem;
+    }
+    
+    .icon-grid {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 10px;
+    }
+    
+    .form-group input,
+    .form-group select {
+        font-size: 16px; /* Prevents iOS zoom */
+    }
+    
+    .upload-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .header h1 {
+        font-size: 1.3rem;
+    }
+    
+    .icon-grid {
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    }
+}
     </style>
 </head>
 <body>
