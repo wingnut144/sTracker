@@ -310,6 +310,112 @@
             background: var(--surface);
             border-color: var(--secondary);
         }
+
+        /* ============================================================================
+   MOBILE RESPONSIVE STYLES
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .header {
+        padding: 20px 15px;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .btn {
+        padding: 8px 15px;
+        font-size: 0.95rem;
+        flex: 1;
+        min-width: 100px;
+    }
+    
+    .container {
+        padding: 10px;
+    }
+    
+    .profile-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .card {
+        padding: 20px;
+    }
+    
+    .card-title {
+        font-size: 1.3rem;
+    }
+    
+    .form-group input,
+    .form-group textarea {
+        font-size: 16px; /* Prevents iOS zoom */
+    }
+    
+    .submit-btn {
+        width: 100%;
+        padding: 15px;
+    }
+    
+    .partner-code-value {
+        font-size: 1.2rem;
+        padding: 15px;
+        word-break: break-all;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    
+    .stat {
+        padding: 15px;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .notification {
+        padding: 15px;
+    }
+    
+    .notification-header {
+        flex-direction: column;
+        gap: 5px;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .header h1 {
+        font-size: 1.3rem;
+    }
+    
+    .btn {
+        font-size: 0.85rem;
+        padding: 8px 12px;
+        min-width: 80px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .partner-code-value {
+        font-size: 1rem;
+    }
+}
     </style>
 </head>
 <body>
