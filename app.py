@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
-    password = db.Column(db.String(255), nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
     partner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     partner_code = db.Column(db.String(32), unique=True, nullable=False)
     full_name = db.Column(db.String(100))
@@ -185,7 +185,7 @@ def login():
         data = request.get_json()
         user = User.query.filter_by(username=data['username']).first()
         
-        if user and check_password_hash(user.password, data['password']):
+        if user and check_password_hash(user.password_hash, data['password']):
             session.permanent = True
             session['user_id'] = user.id
             return jsonify({'success': True})
@@ -205,7 +205,7 @@ def register():
     
     user = User(
         username=data['username'],
-        password=generate_password_hash(data['password']),
+        password_hash=generate_password_hash(data['password']),
         partner_code=partner_code
     )
     
