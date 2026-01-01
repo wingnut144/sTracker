@@ -1164,10 +1164,14 @@
             return date.toLocaleDateString();
         }
         
-        // Initialize
-        loadCustomIcons();
-        loadEncounters();
-        loadStats();
+       // Initialize - load custom icons FIRST, then encounters
+async function init() {
+    await loadCustomIcons();  // Wait for icons to load
+    loadEncounters();
+    loadStats();
+}
+
+init();
     </script>
 </body>
 </html>
