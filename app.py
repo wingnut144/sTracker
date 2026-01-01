@@ -137,6 +137,14 @@ class Message(db.Model):
     message_text = db.Column(db.Text, nullable=False)
     read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class EncounterRating(db.Model):
+    __tablename__ = 'encounter_rating'
+    id = db.Column(db.Integer, primary_key=True)
+    encounter_id = db.Column(db.Integer, db.ForeignKey('encounter.id', ondelete='CASCADE'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 # ============================================================================
 # NOTIFICATION SYSTEM - Signal + Twilio with Smart Fallback
 # ============================================================================
@@ -757,7 +765,7 @@ def get_encounters():
 
 @app.route('/api/encounters/<int:encounter_id>', methods=['GET'])
 def get_encounter_details(encounter_id):
-    """Get single encounter with all details and comments"""
+    """Get single encounter with all details, ratings, and comments"""
     if 'user_id' not in session:
         return jsonify({'error': 'Not authenticated'}), 401
     
@@ -766,17 +774,34 @@ def get_encounter_details(encounter_id):
     if not encounter:
         return jsonify({'error': 'Encounter not found'}), 404
     
-    # Check if user has access (owner or partner)
     user = User.query.get(session['user_id'])
-    if encounter.user_id != session['user_id'] and encounter.user_id != user.partner_id:
-        return jsonify({'error': 'Unauthorized'}), 403
     
-    # Get comments
-    comments = Comment.query.filter_by(encounter_id=encounter_id).order_by(Comment.created_at.asc()).all()
+    # Check access: owner or partner only
+    if encounter.user_id != session['user_id'] and user.partner_id != encounter.user_id:
+        return jsonify({'error': 'Access denied'}), 403
     
     encounter_user = User.query.get(encounter.user_id)
     
-    # Get position name from positions dict
+    # Get both ratings
+    creator_rating_obj = EncounterRating.query.filter_by(
+        encounter_id=encounter_id,
+        user_id=encounter.user_id
+    ).first()
+    
+    partner_rating_obj = None
+    partner_username = None
+    if user.partner_id:
+        partner_rating_obj = EncounterRating.query.filter_by(
+            encounter_id=encounter_id,
+            user_id=user.partner_id
+        ).first()
+        partner = User.query.get(user.partner_id)
+        partner_username = partner.username if partner else None
+    
+    # Get comments with usernames
+    comments = Comment.query.filter_by(encounter_id=encounter_id).order_by(Comment.created_at.asc()).all()
+    
+    # Position names mapping
     positions_dict = {
         'missionary': 'Missionary',
         'doggy': 'Doggy Style',
@@ -794,23 +819,75 @@ def get_encounter_details(encounter_id):
         'date': encounter.date.isoformat(),
         'time': encounter.time.isoformat() if encounter.time else None,
         'position': encounter.position,
-        'position_name': positions_dict.get(encounter.position, encounter.position.title()),
+        'position_name': positions_dict.get(encounter.position, 'Other'),
         'duration': encounter.duration,
-        'rating': encounter.rating,
         'notes': encounter.notes,
-        'user_id': encounter.user_id,
         'username': encounter_user.username,
         'is_own': encounter.user_id == session['user_id'],
+        'creator_rating': {
+            'value': creator_rating_obj.rating if creator_rating_obj else None,
+            'username': encounter_user.username,
+            'user_id': encounter.user_id,
+            'can_edit': encounter.user_id == session['user_id']
+        },
+        'partner_rating': {
+            'value': partner_rating_obj.rating if partner_rating_obj else None,
+            'username': partner_username,
+            'user_id': user.partner_id,
+            'can_edit': user.partner_id == session['user_id']
+        } if user.partner_id else None,
         'comments': [{
             'id': c.id,
+            'user': User.query.get(c.commenter_id).username,
+            'user_id': c.commenter_id,
             'text': c.text,
             'rating': c.rating,
-            'user': User.query.get(c.commenter_id).username,
-            'is_own': c.commenter_id == session['user_id'],
-            'created_at': c.created_at.isoformat()
+            'created_at': c.created_at.isoformat(),
+            'is_own': c.commenter_id == session['user_id']
         } for c in comments]
     })
 
+@app.route('/api/encounters/<int:encounter_id>/rating', methods=['POST'])
+def rate_encounter(encounter_id):
+    """Add or update rating for an encounter"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    encounter = Encounter.query.get(encounter_id)
+    if not encounter:
+        return jsonify({'error': 'Encounter not found'}), 404
+    
+    user = User.query.get(session['user_id'])
+    
+    # Check access: owner or partner only
+    if encounter.user_id != session['user_id'] and user.partner_id != encounter.user_id:
+        return jsonify({'error': 'Access denied'}), 403
+    
+    data = request.get_json()
+    rating_value = data.get('rating')
+    
+    if not rating_value or not (1 <= rating_value <= 5):
+        return jsonify({'error': 'Rating must be between 1 and 5'}), 400
+    
+    # Check if rating already exists
+    existing_rating = EncounterRating.query.filter_by(
+        encounter_id=encounter_id,
+        user_id=session['user_id']
+    ).first()
+    
+    if existing_rating:
+        existing_rating.rating = rating_value
+    else:
+        new_rating = EncounterRating(
+            encounter_id=encounter_id,
+            user_id=session['user_id'],
+            rating=rating_value
+        )
+        db.session.add(new_rating)
+    
+    db.session.commit()
+    
+    return jsonify({'success': True})
 
 @app.route('/api/encounters', methods=['POST'])
 def add_encounter():
