@@ -129,6 +129,14 @@ class CustomIcon(db.Model):
     svg_content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    subject = db.Column(db.String(200), nullable=True)
+    message_text = db.Column(db.Text, nullable=False)
+    read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 # ============================================================================
 # NOTIFICATION SYSTEM - Signal + Twilio with Smart Fallback
 # ============================================================================
@@ -623,9 +631,12 @@ def cancel_proposal(proposal_id):
     
     return jsonify({'success': True})
 
-# ============================================================================
-# API ROUTES - Notifications
-# ============================================================================
+@app.route('/messages')
+def messages():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('messages.html')
 
 # ============================================================================
 # API ROUTES - Notifications
@@ -1057,6 +1068,125 @@ def delete_custom_icon(position_name):
         db.session.commit()
     
     return jsonify({'success': True})
+
+# ============================================================================
+# API ROUTES - Messages
+# ============================================================================
+
+@app.route('/api/messages', methods=['GET'])
+def get_messages():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    # Get all messages where user is sender or recipient
+    sent_messages = Message.query.filter_by(sender_id=session['user_id']).all()
+    received_messages = Message.query.filter_by(recipient_id=session['user_id']).all()
+    
+    def format_message(msg, is_sent=False):
+        if is_sent:
+            other_user = User.query.get(msg.recipient_id)
+            other_label = 'To'
+        else:
+            other_user = User.query.get(msg.sender_id)
+            other_label = 'From'
+        
+        return {
+            'id': msg.id,
+            'subject': msg.subject or '(No subject)',
+            'message': msg.message_text,
+            'read': msg.read,
+            'created_at': msg.created_at.isoformat(),
+            'is_sent': is_sent,
+            'other_user': other_user.username if other_user else 'Unknown',
+            'other_label': other_label
+        }
+    
+    all_messages = []
+    all_messages.extend([format_message(m, is_sent=True) for m in sent_messages])
+    all_messages.extend([format_message(m, is_sent=False) for m in received_messages])
+    
+    # Sort by created_at descending
+    all_messages.sort(key=lambda x: x['created_at'], reverse=True)
+    
+    # Count unread
+    unread_count = Message.query.filter_by(
+        recipient_id=session['user_id'],
+        read=False
+    ).count()
+    
+    return jsonify({
+        'messages': all_messages,
+        'unread_count': unread_count
+    })
+
+@app.route('/api/messages', methods=['POST'])
+def send_message():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    user = User.query.get(session['user_id'])
+    if not user.partner_id:
+        return jsonify({'error': 'No partner connected'}), 400
+    
+    data = request.get_json()
+    
+    new_message = Message(
+        sender_id=session['user_id'],
+        recipient_id=user.partner_id,
+        subject=data.get('subject', ''),
+        message_text=data.get('message', '')
+    )
+    
+    db.session.add(new_message)
+    db.session.commit()
+    
+    # Create notification for recipient
+    sender = User.query.get(session['user_id'])
+    notification_msg = f"💌 New message from {sender.username}"
+    if data.get('subject'):
+        notification_msg += f": {data.get('subject')}"
+    
+    create_notification(
+        user.partner_id,
+        'new_message',
+        notification_msg
+    )
+    
+    # Send external notification if enabled
+    partner = User.query.get(user.partner_id)
+    if partner.sms_notifications and partner.phone_number:
+        send_notification_message(partner.phone_number, notification_msg)
+    
+    return jsonify({'success': True, 'id': new_message.id})
+
+@app.route('/api/messages/<int:message_id>/mark-read', methods=['POST'])
+def mark_message_read(message_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    message = Message.query.get(message_id)
+    
+    if message and message.recipient_id == session['user_id']:
+        message.read = True
+        db.session.commit()
+        return jsonify({'success': True})
+    
+    return jsonify({'error': 'Message not found'}), 404
+
+@app.route('/api/messages/<int:message_id>', methods=['DELETE'])
+def delete_message(message_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    message = Message.query.get(message_id)
+    
+    # Only sender or recipient can delete
+    if message and (message.sender_id == session['user_id'] or message.recipient_id == session['user_id']):
+        db.session.delete(message)
+        db.session.commit()
+        return jsonify({'success': True})
+    
+    return jsonify({'error': 'Message not found'}), 404
 
 # ============================================================================
 # DATABASE INITIALIZATION
