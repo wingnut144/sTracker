@@ -520,6 +520,184 @@
         .delete-btn:hover {
             background: #a93d3d;
         }
+/* ============================================================================
+   MOBILE RESPONSIVE STYLES
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .header {
+        padding: 20px 15px;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .btn {
+        padding: 8px 15px;
+        font-size: 0.95rem;
+        flex: 1;
+        min-width: 100px;
+        text-align: center;
+    }
+    
+    .container {
+        padding: 10px;
+        margin: 20px auto;
+    }
+    
+    .stats-bar {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        padding: 15px;
+    }
+    
+    .stat-card {
+        padding: 15px;
+    }
+    
+    .stat-value {
+        font-size: 1.8rem;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+    }
+    
+    .calendar-header {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+    }
+    
+    .calendar-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    .calendar-nav button {
+        padding: 8px 15px;
+        font-size: 1rem;
+    }
+    
+    .calendar-grid {
+        gap: 3px;
+    }
+    
+    .day {
+        min-height: 70px;
+        padding: 5px;
+    }
+    
+    .day-number {
+        font-size: 0.9rem;
+    }
+    
+    .encounter-icon {
+        font-size: 1.5rem;
+    }
+    
+    /* Form styles for mobile */
+    .form-container {
+        padding: 20px 15px;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-group label {
+        font-size: 1rem;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 12px;
+        font-size: 16px; /* Prevents iOS zoom on focus */
+    }
+    
+    .submit-btn {
+        width: 100%;
+        padding: 15px;
+        font-size: 1.1rem;
+    }
+    
+    /* Modal for mobile */
+    .modal-content {
+        width: 95%;
+        max-width: 95%;
+        padding: 20px;
+        margin: 10px;
+    }
+    
+    .modal-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    .close-btn {
+        font-size: 1.5rem;
+        padding: 5px 10px;
+    }
+    
+    /* Icon grid for mobile */
+    .icon-grid {
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+        gap: 10px;
+    }
+    
+    .icon-option {
+        padding: 10px;
+    }
+    
+    .icon-option svg {
+        width: 30px;
+        height: 30px;
+    }
+    
+    /* Touch-friendly targets */
+    button, .btn, a.btn {
+        min-height: 44px; /* Apple's recommended touch target */
+        min-width: 44px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header h1 {
+        font-size: 1.3rem;
+    }
+    
+    .btn {
+        font-size: 0.85rem;
+        padding: 8px 12px;
+    }
+    
+    .stats-bar {
+        grid-template-columns: 1fr;
+    }
+    
+    .day {
+        min-height: 60px;
+        padding: 3px;
+    }
+    
+    .day-number {
+        font-size: 0.8rem;
+    }
+    
+    .encounter-icon {
+        font-size: 1.2rem;
+    }
+}
+        
     </style>
 </head>
 <body>
