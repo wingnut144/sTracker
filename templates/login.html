@@ -219,6 +219,48 @@
             25% { transform: translateX(-10px); }
             75% { transform: translateX(10px); }
         }
+        /* ============================================================================
+   MOBILE RESPONSIVE STYLES
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .container {
+        padding: 20px 15px;
+        margin: 20px auto;
+    }
+    
+    .login-card {
+        padding: 30px 20px;
+    }
+    
+    .login-card h1 {
+        font-size: 1.8rem;
+    }
+    
+    .form-group input {
+        font-size: 16px; /* Prevents iOS zoom */
+        padding: 12px;
+    }
+    
+    .submit-btn {
+        padding: 15px;
+        font-size: 1.1rem;
+    }
+    
+    .signup-link {
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-card h1 {
+        font-size: 1.5rem;
+    }
+    
+    .login-card {
+        padding: 25px 15px;
+    }
+}
     </style>
 </head>
 <body>
