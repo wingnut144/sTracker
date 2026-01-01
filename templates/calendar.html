@@ -1009,49 +1009,119 @@ if (response.ok) {
             }
         }
         
-        async function viewEncounter(id) {
-            currentEncounterId = id;
-            const response = await fetch(`/api/encounters/${id}`);
-            const encounter = await response.json();
-            
-            document.getElementById('encounter-details').innerHTML = `
-                <div class="form-group">
-                    <label>Added by</label>
-                    <p>${encounter.username}</p>
-                </div>
-                <div class="form-group">
-                    <label>Date</label>
-                    <p>${new Date(encounter.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                </div>
-                ${encounter.time ? `<div class="form-group"><label>Time</label><p>${encounter.time}</p></div>` : ''}
-                <div class="form-group">
-                    <label>Position</label>
-                    <p><span class="encounter-icon">${getPositionIcon(encounter.position)}</span> ${encounter.position_name}</p>
-                </div>
-                ${encounter.duration ? `<div class="form-group"><label>Duration</label><p>${encounter.duration} minutes</p></div>` : ''}
-                ${encounter.rating ? `<div class="form-group"><label>Rating</label><p>${'★'.repeat(encounter.rating)}${'☆'.repeat(5 - encounter.rating)}</p></div>` : ''}
-                ${encounter.notes ? `<div class="form-group"><label>Notes</label><p>${encounter.notes}</p></div>` : ''}
-                ${encounter.is_own ? `<button class="delete-btn" onclick="deleteEncounter()">🗑️ Delete Encounter</button>` : ''}
-            `;
-            
-            const commentsList = document.getElementById('comments-list');
-            if (encounter.comments && encounter.comments.length > 0) {
-                commentsList.innerHTML = encounter.comments.map(c => `
-                    <div class="comment">
-                        <div class="comment-header">
-                            <span class="comment-user">${c.user}</span>
-                            <span class="comment-time">${new Date(c.created_at).toLocaleString()}</span>
-                        </div>
-                        ${c.rating ? `<div class="comment-rating">${'★'.repeat(c.rating)}${'☆'.repeat(5 - c.rating)}</div>` : ''}
-                        <div class="comment-text">${c.text}</div>
-                    </div>
-                `).join('');
-            } else {
-                commentsList.innerHTML = '<p style="color: var(--text-light); font-style: italic;">No comments yet. Be the first to add feedback!</p>';
-            }
-            
-            document.getElementById('view-modal').classList.add('show');
+        let currentEncounterId = null;
+let currentEncounterData = null;
+
+async function viewEncounter(encounterId) {
+    currentEncounterId = encounterId;
+    
+    const response = await fetch(`/api/encounters/${encounterId}`);
+    const encounter = await response.json();
+    currentEncounterData = encounter;
+    
+    document.getElementById('detail-date').textContent = new Date(encounter.date).toLocaleDateString();
+    document.getElementById('detail-time').textContent = encounter.time || 'Not specified';
+    document.getElementById('detail-icon').innerHTML = getPositionIcon(encounter.position);
+    document.getElementById('detail-position').textContent = encounter.position_name;
+    document.getElementById('detail-duration').textContent = encounter.duration || 'Not specified';
+    document.getElementById('detail-username').textContent = encounter.username;
+    document.getElementById('detail-notes').textContent = encounter.notes || 'No notes';
+    
+    // Show delete button only if user owns the encounter
+    document.getElementById('delete-btn').style.display = encounter.is_own ? 'block' : 'none';
+    
+    // Display Creator Rating
+    const creatorLabel = document.getElementById('creator-rating-label');
+    const creatorDisplay = document.getElementById('creator-rating-display');
+    const creatorInput = document.getElementById('creator-rating-input');
+    
+    creatorLabel.textContent = encounter.creator_rating.username + ':';
+    
+    if (encounter.creator_rating.value) {
+        creatorDisplay.innerHTML = '⭐'.repeat(encounter.creator_rating.value);
+        creatorDisplay.style.display = 'block';
+        creatorInput.style.display = 'none';
+    } else if (encounter.creator_rating.can_edit) {
+        creatorDisplay.style.display = 'none';
+        creatorInput.style.display = 'block';
+    } else {
+        creatorDisplay.textContent = 'Not rated yet';
+        creatorDisplay.style.display = 'block';
+        creatorInput.style.display = 'none';
+    }
+    
+    // Display Partner Rating
+    const partnerSection = document.getElementById('partner-rating-section');
+    if (encounter.partner_rating) {
+        partnerSection.style.display = 'block';
+        const partnerLabel = document.getElementById('partner-rating-label');
+        const partnerDisplay = document.getElementById('partner-rating-display');
+        const partnerInput = document.getElementById('partner-rating-input');
+        
+        partnerLabel.textContent = encounter.partner_rating.username + ':';
+        
+        if (encounter.partner_rating.value) {
+            partnerDisplay.innerHTML = '⭐'.repeat(encounter.partner_rating.value);
+            partnerDisplay.style.display = 'block';
+            partnerInput.style.display = 'none';
+        } else if (encounter.partner_rating.can_edit) {
+            partnerDisplay.style.display = 'none';
+            partnerInput.style.display = 'block';
+        } else {
+            partnerDisplay.textContent = 'Not rated yet';
+            partnerDisplay.style.display = 'block';
+            partnerInput.style.display = 'none';
         }
+    } else {
+        partnerSection.style.display = 'none';
+    }
+    
+    // Display comments with clear user labels
+    const commentsList = document.getElementById('comments-list');
+    if (encounter.comments.length === 0) {
+        commentsList.innerHTML = '<p style="color: var(--text-light); font-style: italic;">No comments yet</p>';
+    } else {
+        commentsList.innerHTML = encounter.comments.map(comment => `
+            <div style="background: ${comment.is_own ? 'rgba(201, 134, 134, 0.1)' : 'rgba(212, 165, 165, 0.05)'}; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid ${comment.is_own ? 'var(--accent)' : 'var(--primary)'};">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <strong style="color: var(--secondary);">${comment.user}</strong>
+                    <span style="color: var(--text-light); font-size: 0.9rem;">${formatTime(comment.created_at)}</span>
+                </div>
+                <p style="margin-bottom: 5px;">${comment.text}</p>
+                ${comment.rating ? `<div style="color: var(--accent);">${'⭐'.repeat(comment.rating)}</div>` : ''}
+            </div>
+        `).join('');
+    }
+    
+    document.getElementById('encounter-modal').classList.add('show');
+}
+
+async function saveRating(type) {
+    const selectId = type === 'creator' ? 'creator-rating-select' : 'partner-rating-select';
+    const rating = parseInt(document.getElementById(selectId).value);
+    
+    if (!rating) {
+        alert('Please select a rating');
+        return;
+    }
+    
+    const response = await fetch(`/api/encounters/${currentEncounterId}/rating`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating })
+    });
+    
+    if (response.ok) {
+        // Reload the encounter details to show updated rating
+        viewEncounter(currentEncounterId);
+    }
+}
+
+function closeEncounterModal() {
+    document.getElementById('encounter-modal').classList.remove('show');
+    currentEncounterId = null;
+    currentEncounterData = null;
+}
         
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('show');
