@@ -289,6 +289,116 @@ cat > ~/sTracker/templates/messages.html << 'EOF'
         .delete-btn:hover {
             background: #a93d3d;
         }
+        /* ============================================================================
+   MOBILE RESPONSIVE STYLES
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .header {
+        padding: 20px 15px;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .btn {
+        padding: 8px 15px;
+        font-size: 0.95rem;
+        flex: 1;
+        min-width: 100px;
+    }
+    
+    .container {
+        padding: 10px;
+        margin: 20px auto;
+    }
+    
+    .compose-section,
+    .messages-list {
+        padding: 20px;
+    }
+    
+    .compose-section h2,
+    .messages-list h2 {
+        font-size: 1.3rem;
+    }
+    
+    .form-group input,
+    .form-group textarea {
+        font-size: 16px; /* Prevents iOS zoom */
+        padding: 12px;
+    }
+    
+    .submit-btn {
+        width: 100%;
+        padding: 15px;
+    }
+    
+    .message-item {
+        padding: 15px;
+    }
+    
+    .message-header {
+        flex-direction: column;
+        gap: 5px;
+        align-items: flex-start;
+    }
+    
+    .message-subject {
+        font-size: 1.1rem;
+    }
+    
+    .modal-content {
+        width: 95%;
+        padding: 20px;
+        max-height: 90vh;
+    }
+    
+    .modal-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .modal-header h2 {
+        font-size: 1.2rem;
+    }
+    
+    .close-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+    }
+    
+    .delete-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .header h1 {
+        font-size: 1.3rem;
+    }
+    
+    .btn {
+        font-size: 0.85rem;
+        padding: 8px 12px;
+    }
+    
+    .message-subject {
+        font-size: 1rem;
+    }
+}
     </style>
 </head>
 <body>
