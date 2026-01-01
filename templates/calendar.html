@@ -742,57 +742,83 @@
         </div>
     </div>
     
-    <!-- Add Encounter Modal -->
-    <div class="modal" id="add-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Add Encounter</h2>
-                <button class="close-btn" onclick="closeModal('add-modal')">&times;</button>
+    <!-- Encounter Detail Modal -->
+<div class="modal" id="encounter-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Encounter Details</h2>
+            <button class="close-btn" onclick="closeEncounterModal()">&times;</button>
+        </div>
+        <div id="encounter-details">
+            <p><strong>Date:</strong> <span id="detail-date"></span></p>
+            <p><strong>Time:</strong> <span id="detail-time"></span></p>
+            <p><span class="encounter-icon" id="detail-icon"></span> <span id="detail-position"></span></p>
+            <p><strong>Duration:</strong> <span id="detail-duration"></span> minutes</p>
+            <p><strong>Added by:</strong> <span id="detail-username"></span></p>
+            
+            <!-- Ratings Section -->
+            <div style="margin: 20px 0; padding: 20px; background: rgba(212, 165, 165, 0.1); border-radius: 10px;">
+                <h3 style="margin-bottom: 15px; font-size: 1.2rem; color: var(--secondary);">⭐ Ratings</h3>
+                
+                <!-- Creator Rating -->
+                <div id="creator-rating-section" style="margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <strong id="creator-rating-label"></strong>
+                        <div id="creator-rating-display"></div>
+                    </div>
+                    <div id="creator-rating-input" style="display: none;">
+                        <select id="creator-rating-select" style="padding: 8px; border-radius: 5px; border: 2px solid var(--border);">
+                            <option value="">Rate this encounter</option>
+                            <option value="1">⭐ 1 - Poor</option>
+                            <option value="2">⭐⭐ 2 - Fair</option>
+                            <option value="3">⭐⭐⭐ 3 - Good</option>
+                            <option value="4">⭐⭐⭐⭐ 4 - Great</option>
+                            <option value="5">⭐⭐⭐⭐⭐ 5 - Amazing</option>
+                        </select>
+                        <button onclick="saveRating('creator')" style="padding: 8px 15px; background: var(--accent); color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">Save</button>
+                    </div>
+                </div>
+                
+                <!-- Partner Rating -->
+                <div id="partner-rating-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <strong id="partner-rating-label"></strong>
+                        <div id="partner-rating-display"></div>
+                    </div>
+                    <div id="partner-rating-input" style="display: none;">
+                        <select id="partner-rating-select" style="padding: 8px; border-radius: 5px; border: 2px solid var(--border);">
+                            <option value="">Rate this encounter</option>
+                            <option value="1">⭐ 1 - Poor</option>
+                            <option value="2">⭐⭐ 2 - Fair</option>
+                            <option value="3">⭐⭐⭐ 3 - Good</option>
+                            <option value="4">⭐⭐⭐⭐ 4 - Great</option>
+                            <option value="5">⭐⭐⭐⭐⭐ 5 - Amazing</option>
+                        </select>
+                        <button onclick="saveRating('partner')" style="padding: 8px 15px; background: var(--accent); color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">Save</button>
+                    </div>
+                </div>
             </div>
-            <form onsubmit="handleAddEncounter(event)">
-                <div class="form-group">
-                    <label>Date</label>
-                    <input type="date" id="encounter-date" required>
-                </div>
-                <div class="form-group">
-                    <label>Time (optional)</label>
-                    <input type="time" id="encounter-time">
-                </div>
-                <div class="form-group">
-                    <label>Position</label>
-                    <div class="position-grid" id="position-grid">
-                        {% for key, value in positions.items() %}
-                        <div class="position-option" onclick="selectPosition('{{ key }}')">
-                            <span class="position-icon-large" id="icon-{{ key }}"></span>
-                            <div class="position-name">{{ value.name }}</div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    <input type="hidden" id="selected-position" required>
-                </div>
-                <div class="form-group">
-                    <label>Duration (minutes)</label>
-                    <input type="number" id="encounter-duration" min="1">
-                </div>
-                <div class="form-group">
-                    <label>Rating</label>
-                    <div class="rating-stars" id="add-rating">
-                        <span class="star" onclick="setRating('add', 1)">☆</span>
-                        <span class="star" onclick="setRating('add', 2)">☆</span>
-                        <span class="star" onclick="setRating('add', 3)">☆</span>
-                        <span class="star" onclick="setRating('add', 4)">☆</span>
-                        <span class="star" onclick="setRating('add', 5)">☆</span>
-                    </div>
-                    <input type="hidden" id="encounter-rating">
-                </div>
-                <div class="form-group">
-                    <label>Notes</label>
-                    <textarea id="encounter-notes"></textarea>
-                </div>
-                <button type="submit" class="submit-btn">Add Encounter</button>
-            </form>
+            
+            <p><strong>Notes:</strong> <span id="detail-notes"></span></p>
+            
+            <button id="delete-btn" class="delete-btn" onclick="deleteEncounter()" style="display: none;">🗑️ Delete Encounter</button>
+        </div>
+        
+        <!-- Comments Section -->
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid var(--border);">
+            <h3 style="margin-bottom: 15px; font-size: 1.2rem;">💬 Comments</h3>
+            <div id="comments-list" style="margin-bottom: 20px;">
+                <!-- Comments will be loaded here -->
+            </div>
+            
+            <!-- Add Comment Form -->
+            <div style="background: rgba(212, 165, 165, 0.05); padding: 15px; border-radius: 10px;">
+                <textarea id="comment-text" placeholder="Add a comment..." style="width: 100%; padding: 10px; border: 2px solid var(--border); border-radius: 5px; font-family: 'Cormorant', serif; font-size: 1rem; min-height: 80px;"></textarea>
+                <button onclick="addComment()" style="margin-top: 10px; padding: 10px 20px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: white; border: none; border-radius: 8px; font-family: 'Cormorant', serif; font-size: 1.1rem; cursor: pointer;">Add Comment</button>
+            </div>
         </div>
     </div>
+</div>
     
     <!-- View Encounter Modal -->
     <div class="modal" id="view-modal">
