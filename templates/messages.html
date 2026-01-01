@@ -1,0 +1,459 @@
+cat > ~/sTracker/templates/messages.html << 'EOF'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages - Intimate Moments</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Cormorant:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #d4a5a5;
+            --secondary: #9c7a7a;
+            --accent: #c98686;
+            --bg: #faf8f6;
+            --surface: #ffffff;
+            --text: #4a3838;
+            --text-light: #8b7373;
+            --shadow: rgba(138, 90, 90, 0.12);
+            --border: rgba(212, 165, 165, 0.2);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Cormorant', serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: white;
+            padding: 30px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+        
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            border-radius: 8px;
+            font-family: 'Cormorant', serif;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            background: white;
+            color: var(--secondary);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        .compose-section {
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px var(--shadow);
+            margin-bottom: 30px;
+        }
+        
+        .compose-section h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--secondary);
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--secondary);
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Cormorant', serif;
+            font-size: 1.1rem;
+            background: var(--bg);
+        }
+        
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        .submit-btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Cormorant', serif;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 165, 165, 0.4);
+        }
+        
+        .messages-list {
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px var(--shadow);
+        }
+        
+        .messages-list h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--secondary);
+            margin-bottom: 20px;
+        }
+        
+        .message-item {
+            padding: 20px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .message-item:hover {
+            border-color: var(--primary);
+            background: rgba(212, 165, 165, 0.05);
+        }
+        
+        .message-item.unread {
+            background: rgba(201, 134, 134, 0.1);
+            border-color: var(--accent);
+        }
+        
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+        
+        .message-subject {
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: var(--secondary);
+        }
+        
+        .message-time {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        
+        .message-from {
+            color: var(--text-light);
+            margin-bottom: 5px;
+        }
+        
+        .message-preview {
+            color: var(--text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-light);
+            font-style: italic;
+        }
+        
+        .badge {
+            background: #ff4444;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 8px;
+            font-size: 0.9rem;
+            margin-left: 5px;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: var(--surface);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .modal-header h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--secondary);
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+        
+        .message-body {
+            white-space: pre-wrap;
+            line-height: 1.6;
+            margin: 20px 0;
+        }
+        
+        .delete-btn {
+            padding: 10px 20px;
+            background: #c94d4d;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Cormorant', serif;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .delete-btn:hover {
+            background: #a93d3d;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>💌 Messages</h1>
+        <div class="header-actions">
+            <a href="/" class="btn">📅 Calendar</a>
+            <a href="/profile" class="btn">👤 Profile</a>
+            <button class="btn" onclick="window.location.href='/logout'">Sign Out</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="compose-section">
+            <h2>Compose Message</h2>
+            <form onsubmit="sendMessage(event)">
+                <div class="form-group">
+                    <label>Subject</label>
+                    <input type="text" id="message-subject" placeholder="Optional subject line">
+                </div>
+                <div class="form-group">
+                    <label>Message</label>
+                    <textarea id="message-text" required placeholder="Write your message..."></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Send Message</button>
+            </form>
+        </div>
+        
+        <div class="messages-list">
+            <h2>Messages <span id="unread-badge" class="badge" style="display: none;"></span></h2>
+            <div id="messages-container">
+                <div class="empty-state">Loading messages...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Message Detail Modal -->
+    <div class="modal" id="message-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-subject"></h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modal-from" class="message-from"></div>
+            <div id="modal-time" class="message-time"></div>
+            <div id="modal-body" class="message-body"></div>
+            <button class="delete-btn" id="delete-btn" onclick="deleteMessage()">🗑️ Delete Message</button>
+        </div>
+    </div>
+    
+    <script>
+        let currentMessageId = null;
+        
+        async function sendMessage(e) {
+            e.preventDefault();
+            
+            const data = {
+                subject: document.getElementById('message-subject').value,
+                message: document.getElementById('message-text').value
+            };
+            
+            const response = await fetch('/api/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            
+            if (response.ok) {
+                e.target.reset();
+                loadMessages();
+                alert('Message sent!');
+            }
+        }
+        
+        async function loadMessages() {
+            const response = await fetch('/api/messages');
+            const data = await response.json();
+            
+            const container = document.getElementById('messages-container');
+            const badge = document.getElementById('unread-badge');
+            
+            if (data.unread_count > 0) {
+                badge.textContent = data.unread_count;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+            
+            if (data.messages.length === 0) {
+                container.innerHTML = '<div class="empty-state">No messages yet</div>';
+                return;
+            }
+            
+            container.innerHTML = data.messages.map(msg => `
+                <div class="message-item ${msg.is_sent ? '' : (msg.read ? '' : 'unread')}" onclick="viewMessage(${msg.id})">
+                    <div class="message-header">
+                        <div class="message-subject">${msg.subject}</div>
+                        <div class="message-time">${formatTime(msg.created_at)}</div>
+                    </div>
+                    <div class="message-from">${msg.other_label}: ${msg.other_user}</div>
+                    <div class="message-preview">${msg.message}</div>
+                </div>
+            `).join('');
+        }
+        
+        async function viewMessage(id) {
+            currentMessageId = id;
+            const response = await fetch('/api/messages');
+            const data = await response.json();
+            
+            const message = data.messages.find(m => m.id === id);
+            if (!message) return;
+            
+            document.getElementById('modal-subject').textContent = message.subject;
+            document.getElementById('modal-from').textContent = `${message.other_label}: ${message.other_user}`;
+            document.getElementById('modal-time').textContent = formatTime(message.created_at);
+            document.getElementById('modal-body').textContent = message.message;
+            
+            document.getElementById('message-modal').classList.add('show');
+            
+            // Mark as read if not sent by me
+            if (!message.is_sent && !message.read) {
+                await fetch(`/api/messages/${id}/mark-read`, { method: 'POST' });
+                loadMessages();
+            }
+        }
+        
+        function closeModal() {
+            document.getElementById('message-modal').classList.remove('show');
+        }
+        
+        async function deleteMessage() {
+            if (!confirm('Delete this message?')) return;
+            
+            const response = await fetch(`/api/messages/${currentMessageId}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                closeModal();
+                loadMessages();
+            }
+        }
+        
+        function formatTime(isoString) {
+            const date = new Date(isoString);
+            const now = new Date();
+            const diff = now - date;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+            
+            if (minutes < 1) return 'Just now';
+            if (minutes < 60) return `${minutes}m ago`;
+            if (hours < 24) return `${hours}h ago`;
+            if (days < 7) return `${days}d ago`;
+            return date.toLocaleDateString();
+        }
+        
+        // Load messages on page load
+        loadMessages();
+        
+        // Refresh every 30 seconds
+        setInterval(loadMessages, 30000);
+    </script>
+</body>
+</html>
+EOF
