@@ -544,7 +544,7 @@
         
         async function markAllRead() {
             try {
-                await fetch('/api/notifications/mark_all_read', { method: 'POST' });
+                await fetch('/api/notifications/mark-all-read', { method: 'POST' });
                 loadNotifications();
             } catch (error) {
                 console.error('Error marking notifications as read');
