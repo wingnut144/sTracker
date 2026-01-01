@@ -254,7 +254,7 @@ def messages():
     return render_template('messages.html')
 
 @app.route('/proposals')
-def proposals():
+def proposals_page():  # ✅ Unique name!
     if 'user_id' not in session:
         return redirect(url_for('login'))
     
