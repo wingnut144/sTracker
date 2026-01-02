@@ -3,242 +3,258 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendar - Intimate Moments</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Cormorant:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>Intimate Tracker - Calendar</title>
     <style>
-        :root {
-            --primary: #d4a5a5;
-            --secondary: #9c7a7a;
-            --accent: #c98686;
-            --bg: #faf8f6;
-            --surface: #ffffff;
-            --text: #4a3838;
-            --text-light: #8b7373;
-            --shadow: rgba(138, 90, 90, 0.12);
-            --border: rgba(212, 165, 165, 0.2);
-        }
-        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
-            font-family: 'Cormorant', serif;
-            background: var(--bg);
-            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            padding: 20px;
         }
-        
-        .header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-            color: white;
-            padding: 30px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 20px var(--shadow);
-        }
-        
-        .header h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 2rem;
-            font-weight: 600;
-        }
-        
-        .header-actions {
-            display: flex;
-            gap: 15px;
-        }
-        
-        .btn {
-            padding: 10px 20px;
-            border: 2px solid white;
-            background: transparent;
-            color: white;
-            border-radius: 8px;
-            font-family: 'Cormorant', serif;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-        
-        .btn:hover {
-            background: white;
-            color: var(--secondary);
-        }
-        
+
         .container {
             max-width: 1400px;
-            margin: 40px auto;
-            padding: 0 20px;
+            margin: 0 auto;
         }
-        
-        .stats-bar {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+
+        /* Navigation Bar */
+        .nav-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
-        
-        .stat-card {
-            background: var(--surface);
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px var(--shadow);
-            text-align: center;
+
+        .nav-bar a {
+            padding: 10px 20px;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s;
+            font-size: 0.9rem;
         }
-        
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: 600;
-            color: var(--accent);
-            font-family: 'Playfair Display', serif;
+
+        .nav-bar a:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
         }
-        
-        .stat-label {
-            color: var(--text-light);
-            margin-top: 5px;
-            font-size: 1rem;
-        }
-        
-        .calendar-container {
-            background: var(--surface);
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 30px;
-            box-shadow: 0 4px 20px var(--shadow);
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            color: white;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9));
         }
-        
-        .calendar-header {
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid var(--border);
-        }
-        
-        .calendar-header h2 {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.8rem;
-            color: var(--secondary);
-        }
-        
-        .calendar-nav {
-            display: flex;
+            flex-wrap: wrap;
             gap: 15px;
+        }
+
+        .month-nav {
+            display: flex;
             align-items: center;
+            gap: 20px;
         }
-        
-        .calendar-nav button {
-            padding: 10px 20px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-            color: white;
+
+        .month-nav button {
+            background: rgba(255, 255, 255, 0.2);
             border: none;
-            border-radius: 8px;
-            font-family: 'Cormorant', serif;
-            font-size: 1.1rem;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            font-size: 1rem;
+            transition: all 0.3s;
         }
-        
-        .calendar-nav button:hover {
+
+        .month-nav button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .current-month {
+            font-size: 1.5rem;
+            font-weight: bold;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .add-btn {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .add-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(212, 165, 165, 0.4);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
-        
+
+        /* Gamification Stats */
+        .gamification-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .stat-icon {
+            font-size: 1.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            opacity: 0.9;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card h3 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .calendar-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .calendar-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .calendar-header div {
+            text-align: center;
+            padding: 10px;
+        }
+
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 10px;
         }
-        
-        .day-header {
-            text-align: center;
-            font-weight: 600;
-            padding: 15px;
-            color: var(--secondary);
-            font-size: 1.1rem;
-        }
-        
+
         .day {
-            min-height: 100px;
+            aspect-ratio: 1;
             padding: 10px;
-            border: 2px solid var(--border);
             border-radius: 10px;
-            background: var(--bg);
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
             position: relative;
-            transition: all 0.3s ease;
         }
-        
+
         .day:hover {
-            border-color: var(--primary);
-            background: rgba(212, 165, 165, 0.05);
+            background: #e9ecef;
+            transform: scale(1.05);
         }
-        
+
+        .day.today {
+            border: 2px solid #667eea;
+            background: #f0f4ff;
+        }
+
         .day.other-month {
             opacity: 0.3;
         }
-        
-        .day.today {
-            background: rgba(201, 134, 134, 0.1);
-            border-color: var(--accent);
-        }
-        
+
         .day-number {
-            font-weight: 600;
-            color: var(--secondary);
+            font-weight: bold;
+            color: #333;
             margin-bottom: 5px;
         }
-        
-        .encounter-icon {
-    font-size: 2rem;
-    cursor: pointer;
-    transition: transform 0.3s ease;
-    display: inline-block;
-    width: 40px;
-    height: 40px;
-}
 
-.encounter-icon svg {
-    width: 100%;
-    height: 100%;
-    display: block;
-}
-        
+        .encounter-icon {
+            font-size: 2rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+        }
+
+        .encounter-icon svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
         .encounter-icon:hover {
             transform: scale(1.2);
         }
-        
-        .add-btn {
-            position: fixed;
-            bottom: 40px;
-            right: 40px;
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-            color: white;
-            border: none;
-            font-size: 2.5rem;
-            cursor: pointer;
-            box-shadow: 0 8px 25px rgba(138, 90, 90, 0.3);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .add-btn:hover {
-            transform: scale(1.1) rotate(90deg);
-            box-shadow: 0 12px 35px rgba(138, 90, 90, 0.4);
-        }
-        
+
         /* Modal Styles */
         .modal {
             display: none;
@@ -247,696 +263,607 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.7);
             z-index: 1000;
             overflow-y: auto;
         }
-        
+
         .modal.show {
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px;
         }
-        
+
         .modal-content {
-            background: var(--surface);
-            padding: 40px;
+            background: white;
             border-radius: 20px;
+            padding: 30px;
             max-width: 600px;
-            width: 90%;
+            width: 100%;
             max-height: 90vh;
             overflow-y: auto;
+            position: relative;
         }
-        
+
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
-        
+
         .modal-header h2 {
-            font-family: 'Playfair Display', serif;
-            color: var(--secondary);
+            color: #667eea;
+            font-size: 1.8rem;
         }
-        
+
         .close-btn {
             background: none;
             border: none;
             font-size: 2rem;
             cursor: pointer;
-            color: var(--text-light);
-            padding: 0 10px;
+            color: #999;
+            transition: color 0.3s;
         }
-        
-        .form-container {
-            padding: 30px 0;
+
+        .close-btn:hover {
+            color: #333;
         }
-        
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        
+
         .form-group {
             margin-bottom: 20px;
         }
-        
-        .form-group.full-width {
-            grid-column: 1 / -1;
-        }
-        
+
         .form-group label {
             display: block;
             margin-bottom: 8px;
+            color: #333;
             font-weight: 500;
-            color: var(--secondary);
         }
-        
+
         .form-group input,
         .form-group select,
         .form-group textarea {
             width: 100%;
             padding: 12px;
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            font-family: 'Cormorant', serif;
-            font-size: 1.1rem;
-            background: var(--bg);
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            font-size: 16px; /* Prevents iOS zoom */
         }
-        
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
         .form-group textarea {
-            min-height: 100px;
             resize: vertical;
+            min-height: 100px;
         }
-        
-        .submit-btn {
-            padding: 12px 30px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
+            padding: 12px 30px;
             border-radius: 10px;
-            font-family: 'Cormorant', serif;
-            font-size: 1.2rem;
+            font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
             width: 100%;
         }
-        
-        .submit-btn:hover {
+
+        .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(212, 165, 165, 0.4);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
-        
-        .delete-btn {
-            padding: 10px 20px;
-            background: #c94d4d;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-family: 'Cormorant', serif;
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        /* Encounter Detail Modal */
+        .encounter-detail {
+            padding: 20px 0;
+        }
+
+        .detail-row {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            color: #333;
             font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        }
+
+        .ratings-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .rating-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .rating-username {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .rating-value {
+            font-size: 1.2rem;
+        }
+
+        .comments-section {
             margin-top: 20px;
         }
-        
-        .delete-btn:hover {
-            background: #a93d3d;
-        }
-        
-        .icon-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .icon-option {
+
+        .comment {
+            background: #f8f9fa;
             padding: 15px;
-            border: 2px solid var(--border);
             border-radius: 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: var(--bg);
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
         }
-        
-        .icon-option:hover {
-            border-color: var(--primary);
-            background: rgba(212, 165, 165, 0.1);
+
+        .comment.own-comment {
+            background: #e7f3ff;
+            border-left-color: #667eea;
         }
-        
-        .icon-option.selected {
-            border-color: var(--accent);
-            background: rgba(201, 134, 134, 0.2);
+
+        .comment.partner-comment {
+            background: #fff0f5;
+            border-left-color: #764ba2;
         }
-        
-        .icon-option svg {
-            width: 40px;
-            height: 40px;
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
         }
-        
-        .icon-option .icon-label {
-            margin-top: 8px;
-            font-size: 0.9rem;
-            color: var(--text-light);
+
+        .comment-user {
+            font-weight: bold;
+            color: #667eea;
         }
-        
-        /* ============================================================================
-           MOBILE RESPONSIVE STYLES
-           ============================================================================ */
-        
+
+        .comment-date {
+            color: #999;
+            font-size: 0.85rem;
+        }
+
+        .comment-text {
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .add-comment-form {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .action-buttons button {
+            flex: 1;
+        }
+
+        /* Mobile Responsive */
         @media (max-width: 768px) {
-            .header {
-                padding: 20px 15px;
-                flex-direction: column;
-                gap: 15px;
+            body {
+                padding: 10px;
             }
-            
+
+            .header {
+                padding: 20px;
+            }
+
             .header h1 {
                 font-size: 1.5rem;
             }
-            
-            .header-actions {
-                width: 100%;
-                justify-content: center;
-                flex-wrap: wrap;
-                gap: 10px;
-            }
-            
-            .btn {
-                padding: 8px 15px;
-                font-size: 0.95rem;
-                flex: 1;
-                min-width: 100px;
-                text-align: center;
-            }
-            
-            .container {
-                padding: 10px;
-                margin: 20px auto;
-            }
-            
-            .stats-bar {
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-                padding: 15px;
-            }
-            
-            .stat-card {
-                padding: 15px;
-            }
-            
-            .stat-value {
-                font-size: 1.8rem;
-            }
-            
-            .stat-label {
-                font-size: 0.9rem;
-            }
-            
-            .calendar-header {
+
+            .controls {
                 flex-direction: column;
-                gap: 15px;
+            }
+
+            .current-month {
+                font-size: 1.2rem;
+            }
+
+            .calendar-container {
                 padding: 15px;
             }
-            
-            .calendar-header h2 {
-                font-size: 1.3rem;
-            }
-            
-            .calendar-nav button {
-                padding: 8px 15px;
-                font-size: 1rem;
-            }
-            
+
             .calendar-grid {
-                gap: 3px;
+                gap: 5px;
             }
-            
+
             .day {
-                min-height: 70px;
                 padding: 5px;
+                font-size: 0.85rem;
             }
-            
-            .day-number {
-                font-size: 0.9rem;
-            }
-            
-            .form-container {
-                padding: 20px 15px;
-            }
-            
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .form-group label {
-                font-size: 1rem;
-            }
-            
-            .form-group input,
-            .form-group select,
-            .form-group textarea {
-                padding: 12px;
-                font-size: 16px;
-            }
-            
-            .submit-btn {
-                width: 100%;
-                padding: 15px;
-                font-size: 1.1rem;
-            }
-            
-            .modal-content {
-                width: 95%;
-                max-width: 95%;
-                padding: 20px;
-                margin: 10px;
-            }
-            
-            .modal-header h2 {
-                font-size: 1.3rem;
-            }
-            
-            .close-btn {
+
+            .encounter-icon {
                 font-size: 1.5rem;
-                padding: 5px 10px;
-            }
-            
-            .icon-grid {
-                grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-                gap: 10px;
-            }
-            
-            .icon-option {
-                padding: 10px;
-            }
-            
-            .icon-option svg {
                 width: 30px;
                 height: 30px;
             }
-            
-            button, .btn, a.btn {
-                min-height: 44px;
-                min-width: 44px;
+
+            .modal-content {
+                padding: 20px;
+                margin: 10px;
+                width: calc(100% - 20px);
             }
-            
-            .add-btn {
-                bottom: 20px;
-                right: 20px;
-                width: 60px;
-                height: 60px;
-                font-size: 2rem;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .header h1 {
-                font-size: 1.3rem;
-            }
-            
-            .btn {
-                font-size: 0.85rem;
-                padding: 8px 12px;
-            }
-            
-            .stats-bar {
+
+            .stats {
                 grid-template-columns: 1fr;
             }
-            
-            .day {
-                min-height: 60px;
-                padding: 3px;
+
+            .gamification-stats {
+                grid-template-columns: repeat(2, 1fr);
             }
-            
+
+            .nav-bar {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+            }
+
+            .nav-bar a {
+                white-space: nowrap;
+            }
+
+            .form-group input,
+            .form-group select,
+            .form-group textarea,
+            .btn {
+                font-size: 16px; /* Prevents iOS zoom */
+                min-height: 44px; /* Touch-friendly */
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .modal-header h2 {
+                font-size: 1.3rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .calendar-header div {
+                font-size: 0.75rem;
+                padding: 5px;
+            }
+
             .day-number {
-                font-size: 0.8rem;
+                font-size: 0.9rem;
             }
-            
-            
+
+            .encounter-icon {
+                font-size: 1.2rem;
+                width: 25px;
+                height: 25px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>💕 Intimate Moments Calendar</h1>
-        <div class="header-actions">
-            <a href="/messages" class="btn">💌 Messages</a>
-            <a href="/profile" class="btn">👤 Profile</a>
-            <a href="/admin" class="btn">⚙️ Admin</a>
-            <button class="btn" onclick="window.location.href='/logout'">Sign Out</button>
-        </div>
-    </div>
-    
     <div class="container">
-        <div class="stats-bar" id="stats">
-            <!-- Stats will be loaded here -->
+        <!-- Navigation Bar -->
+        <div class="nav-bar">
+            <a href="/">📅 Calendar</a>
+            <a href="/profile">👤 Profile</a>
+            <a href="/achievements">🏆 Achievements</a>
+            <a href="/challenges">🎯 Challenges</a>
+            <a href="/messages">💌 Messages</a>
+            <a href="/logout">🚪 Logout</a>
         </div>
-        
-        <div class="calendar-container">
-            <div class="calendar-header">
-                <h2 id="current-month"></h2>
-                <div class="calendar-nav">
-                    <button onclick="previousMonth()">← Previous</button>
-                    <button onclick="today()">Today</button>
-                    <button onclick="nextMonth()">Next →</button>
+
+        <!-- Header with Stats -->
+        <div class="header">
+            <h1>📅 Intimate Tracker</h1>
+            
+            <div class="controls">
+                <div class="month-nav">
+                    <button onclick="previousMonth()">←</button>
+                    <div class="current-month" id="current-month"></div>
+                    <button onclick="nextMonth()">→</button>
+                </div>
+                <button class="add-btn" onclick="openAddModal()">+ Add Encounter</button>
+            </div>
+
+            <!-- Gamification Stats -->
+            <div class="gamification-stats">
+                <div class="stat-item">
+                    <span class="stat-icon">⭐</span>
+                    <span class="stat-label">Level</span>
+                    <span class="stat-value" id="user-level">1</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">🔥</span>
+                    <span class="stat-label">Streak</span>
+                    <span class="stat-value" id="user-streak">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">🏆</span>
+                    <span class="stat-label">Achievements</span>
+                    <span class="stat-value" id="user-achievements">0/33</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">💎</span>
+                    <span class="stat-label">Points</span>
+                    <span class="stat-value" id="user-points">0</span>
                 </div>
             </div>
-            
-            <div class="calendar-grid">
-    <div class="day-header">Sun</div>
-    <div class="day-header">Mon</div>
-    <div class="day-header">Tue</div>
-    <div class="day-header">Wed</div>
-    <div class="day-header">Thu</div>
-    <div class="day-header">Fri</div>
-    <div class="day-header">Sat</div>
-</div>
-<div id="calendar-days" class="calendar-grid"></div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats">
+            <div class="stat-card">
+                <h3 id="total-count">-</h3>
+                <p>Total Encounters</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="month-count">-</h3>
+                <p>This Month</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="avg-rating">-</h3>
+                <p>Average Rating</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="pending-count">-</h3>
+                <p>Pending Proposals</p>
+            </div>
+        </div>
+
+        <!-- Calendar -->
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <div>Sun</div>
+                <div>Mon</div>
+                <div>Tue</div>
+                <div>Wed</div>
+                <div>Thu</div>
+                <div>Fri</div>
+                <div>Sat</div>
+            </div>
+            <div class="calendar-grid" id="calendar-days">
+                <!-- Calendar days will be generated here -->
+            </div>
         </div>
     </div>
-    
-    <button class="add-btn" onclick="openAddModal()">+</button>
-    
+
     <!-- Add Encounter Modal -->
     <div class="modal" id="add-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Add New Encounter</h2>
+                <h2>Add Encounter</h2>
                 <button class="close-btn" onclick="closeAddModal()">&times;</button>
             </div>
-            <form onsubmit="handleAddEncounter(event)">
-                <div class="form-container">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Date</label>
-                            <input type="date" id="encounter-date" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Time</label>
-                            <input type="time" id="encounter-time">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Position</label>
-                        <select id="encounter-position" required>
-                            <option value="">Select position</option>
-                            <option value="missionary">Missionary</option>
-                            <option value="doggy">Doggy Style</option>
-                            <option value="cowgirl">Cowgirl</option>
-                            <option value="reverse_cowgirl">Reverse Cowgirl</option>
-                            <option value="spoon">Spooning</option>
-                            <option value="standing">Standing</option>
-                            <option value="oral">Oral</option>
-                            <option value="69">69</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group" id="custom-icon-section" style="display: none;">
-                        <label>Custom Icon</label>
-                        <div class="icon-grid" id="custom-icons-grid">
-                            <!-- Custom icons will be loaded here -->
-                        </div>
-                    </div>
-                    
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Duration (minutes)</label>
-                            <input type="number" id="encounter-duration" min="1">
-                        </div>
-                        <div class="form-group">
-                            <label>Rating</label>
-                            <select id="encounter-rating">
-                                <option value="">Not rated</option>
-                                <option value="1">⭐ 1</option>
-                                <option value="2">⭐⭐ 2</option>
-                                <option value="3">⭐⭐⭐ 3</option>
-                                <option value="4">⭐⭐⭐⭐ 4</option>
-                                <option value="5">⭐⭐⭐⭐⭐ 5</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Notes</label>
-                        <textarea id="encounter-notes" placeholder="Optional notes..."></textarea>
-                    </div>
-                    
-                    <button type="submit" class="submit-btn">Add Encounter</button>
+            <form id="add-form" onsubmit="addEncounter(event)">
+                <div class="form-group">
+                    <label for="date">Date *</label>
+                    <input type="date" id="date" required>
                 </div>
+                <div class="form-group">
+                    <label for="time">Time</label>
+                    <input type="time" id="time">
+                </div>
+                <div class="form-group">
+                    <label for="position">Position *</label>
+                    <select id="position" required>
+                        <option value="">Select position...</option>
+                        <option value="missionary">Missionary</option>
+                        <option value="doggy">Doggy Style</option>
+                        <option value="cowgirl">Cowgirl</option>
+                        <option value="reverse_cowgirl">Reverse Cowgirl</option>
+                        <option value="spoon">Spooning</option>
+                        <option value="standing">Standing</option>
+                        <option value="oral">Oral</option>
+                        <option value="69">69</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="duration">Duration (minutes)</label>
+                    <input type="number" id="duration" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes"></textarea>
+                </div>
+                <button type="submit" class="btn">Add Encounter</button>
             </form>
         </div>
     </div>
-    
-    <!-- Encounter Detail Modal -->
-    <div class="modal" id="encounter-modal">
+
+    <!-- View Encounter Modal -->
+    <div class="modal" id="view-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Encounter Details</h2>
-                <button class="close-btn" onclick="closeEncounterModal()">&times;</button>
+                <button class="close-btn" onclick="closeViewModal()">&times;</button>
             </div>
-            <div id="encounter-details">
-                <p><strong>Date:</strong> <span id="detail-date"></span></p>
-                <p><strong>Time:</strong> <span id="detail-time"></span></p>
-                <p><span class="encounter-icon" id="detail-icon"></span> <span id="detail-position"></span></p>
-                <p><strong>Duration:</strong> <span id="detail-duration"></span> minutes</p>
-                <p><strong>Added by:</strong> <span id="detail-username"></span></p>
-                
-                <!-- Ratings Section -->
-                <div style="margin: 20px 0; padding: 20px; background: rgba(212, 165, 165, 0.1); border-radius: 10px;">
-                    <h3 style="margin-bottom: 15px; font-size: 1.2rem; color: var(--secondary);">⭐ Ratings</h3>
-                    
-                    <!-- Creator Rating -->
-                    <div id="creator-rating-section" style="margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                            <strong id="creator-rating-label"></strong>
-                            <div id="creator-rating-display"></div>
-                        </div>
-                        <div id="creator-rating-input" style="display: none;">
-                            <select id="creator-rating-select" style="padding: 8px; border-radius: 5px; border: 2px solid var(--border);">
-                                <option value="">Rate this encounter</option>
-                                <option value="1">⭐ 1 - Poor</option>
-                                <option value="2">⭐⭐ 2 - Fair</option>
-                                <option value="3">⭐⭐⭐ 3 - Good</option>
-                                <option value="4">⭐⭐⭐⭐ 4 - Great</option>
-                                <option value="5">⭐⭐⭐⭐⭐ 5 - Amazing</option>
-                            </select>
-                            <button onclick="saveRating('creator')" style="padding: 8px 15px; background: var(--accent); color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">Save</button>
-                        </div>
-                    </div>
-                    
-                    <!-- Partner Rating -->
-                    <div id="partner-rating-section">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                            <strong id="partner-rating-label"></strong>
-                            <div id="partner-rating-display"></div>
-                        </div>
-                        <div id="partner-rating-input" style="display: none;">
-                            <select id="partner-rating-select" style="padding: 8px; border-radius: 5px; border: 2px solid var(--border);">
-                                <option value="">Rate this encounter</option>
-                                <option value="1">⭐ 1 - Poor</option>
-                                <option value="2">⭐⭐ 2 - Fair</option>
-                                <option value="3">⭐⭐⭐ 3 - Good</option>
-                                <option value="4">⭐⭐⭐⭐ 4 - Great</option>
-                                <option value="5">⭐⭐⭐⭐⭐ 5 - Amazing</option>
-                            </select>
-                            <button onclick="saveRating('partner')" style="padding: 8px 15px; background: var(--accent); color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">Save</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <p><strong>Notes:</strong> <span id="detail-notes"></span></p>
-                
-                <button id="delete-btn" class="delete-btn" onclick="deleteEncounter()" style="display: none;">🗑️ Delete Encounter</button>
-            </div>
-            
-            <!-- Comments Section -->
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid var(--border);">
-                <h3 style="margin-bottom: 15px; font-size: 1.2rem;">💬 Comments</h3>
-                <div id="comments-list" style="margin-bottom: 20px;">
-                    <!-- Comments will be loaded here -->
-                </div>
-                
-                <!-- Add Comment Form -->
-                <div style="background: rgba(212, 165, 165, 0.05); padding: 15px; border-radius: 10px;">
-                    <textarea id="comment-text" placeholder="Add a comment..." style="width: 100%; padding: 10px; border: 2px solid var(--border); border-radius: 5px; font-family: 'Cormorant', serif; font-size: 1rem; min-height: 80px;"></textarea>
-                    <button onclick="addComment()" style="margin-top: 10px; padding: 10px 20px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: white; border: none; border-radius: 8px; font-family: 'Cormorant', serif; font-size: 1.1rem; cursor: pointer;">Add Comment</button>
-                </div>
+            <div class="encounter-detail" id="encounter-detail">
+                <!-- Details will be loaded here -->
             </div>
         </div>
     </div>
-    
+
     <script>
         let currentMonth = new Date().getMonth();
         let currentYear = new Date().getFullYear();
         let encounters = [];
         let customIcons = {};
-        let selectedCustomIcon = null;
-        let currentEncounterId = null;
-        let currentEncounterData = null;
-        
-        const positions = {
-            'missionary': 'Missionary',
-            'doggy': 'Doggy Style',
-            'cowgirl': 'Cowgirl',
-            'reverse_cowgirl': 'Reverse Cowgirl',
-            'spoon': 'Spooning',
-            'standing': 'Standing',
-            'oral': 'Oral',
+
+        // Position key mapping
+        const positionKeys = {
+            'Missionary': 'missionary',
+            'Doggy Style': 'doggy',
+            'Cowgirl': 'cowgirl',
+            'Reverse Cowgirl': 'reverse_cowgirl',
+            'Spooning': 'spoon',
+            'Standing': 'standing',
+            'Oral': 'oral',
             '69': '69',
-            'other': 'Other'
+            'Other': 'other'
         };
-        
+
+        // Default emoji fallbacks
+        const defaultIcons = {
+            'missionary': '🛏️',
+            'doggy': '🐕',
+            'cowgirl': '🤠',
+            'reverse_cowgirl': '🔄',
+            'spoon': '🥄',
+            'standing': '🧍',
+            'oral': '👄',
+            '69': '⚡',
+            'other': '❤️'
+        };
+
+        async function loadCustomIcons() {
+            try {
+                const response = await fetch('/api/custom-icons');
+                const icons = await response.json();
+                
+                // Create dual mapping: position_name → svg AND position_key → svg
+                customIcons = {};
+                icons.forEach(icon => {
+                    customIcons[icon.position_name] = icon.svg_data;
+                    const key = positionKeys[icon.position_name] || icon.position_name.toLowerCase().replace(/\s+/g, '_');
+                    customIcons[key] = icon.svg_data;
+                });
+                
+                console.log('Custom icons loaded:', Object.keys(customIcons));
+            } catch (error) {
+                console.error('Error loading custom icons:', error);
+            }
+        }
+
         function getPositionIcon(position) {
-            // Check if there's a custom icon for this position
+            // Try custom icon first (both by position key and position name)
             if (customIcons[position]) {
                 return customIcons[position];
             }
             
-            const icons = {
-                'missionary': '🛏️',
-                'doggy': '🐕',
-                'cowgirl': '🤠',
-                'reverse_cowgirl': '🔄',
-                'spoon': '🥄',
-                'standing': '🧍',
-                'oral': '👄',
-                '69': '♋',
-                'other': '❤️'
-            };
-            return icons[position] || '❤️';
+            // Try default emoji
+            if (defaultIcons[position]) {
+                return defaultIcons[position];
+            }
+            
+            // Fallback
+            return '❤️';
         }
-        
-        async function loadCustomIcons() {
-            const response = await fetch('/api/custom-icons');
-            const icons = await response.json();
-            
-            // Store custom icons
-            icons.forEach(icon => {
-                customIcons[icon.position_name] = icon.svg_data;
-            });
-            
-            // Populate custom icon selector
-            const grid = document.getElementById('custom-icons-grid');
-            grid.innerHTML = icons.map(icon => `
-                <div class="icon-option" onclick="selectCustomIcon('${icon.position_name}')" data-position="${icon.position_name}">
-                    ${icon.svg_data}
-                    <div class="icon-label">${icon.position_name}</div>
-                </div>
-            `).join('');
-        }
-        
-        function selectCustomIcon(positionName) {
-            selectedCustomIcon = positionName;
-            
-            // Update visual selection
-            document.querySelectorAll('.icon-option').forEach(el => {
-                el.classList.remove('selected');
-            });
-            document.querySelector(`[data-position="${positionName}"]`).classList.add('selected');
-            
-            // Set the position dropdown to 'other'
-            document.getElementById('encounter-position').value = 'other';
-        }
-        
-        // Show/hide custom icon section based on position selection
-        document.addEventListener('DOMContentLoaded', function() {
-            const positionSelect = document.getElementById('encounter-position');
-            const customIconSection = document.getElementById('custom-icon-section');
-            
-            positionSelect.addEventListener('change', function() {
-                if (this.value === 'other') {
-                    customIconSection.style.display = 'block';
-                } else {
-                    customIconSection.style.display = 'none';
-                    selectedCustomIcon = null;
-                }
-            });
-        });
-        
-        async function loadEncounters() {
-            const response = await fetch(`/api/encounters?month=${currentMonth + 1}&year=${currentYear}`);
-            encounters = await response.json();
-            renderCalendar();
-        }
-        
-        async function loadStats() {
-            const response = await fetch('/api/stats');
-            const stats = await response.json();
-            
-            document.getElementById('stats').innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-value">${stats.total}</div>
-                    <div class="stat-label">Total Encounters</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${stats.this_month}</div>
-                    <div class="stat-label">This Month</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${stats.average_rating.toFixed(1)}</div>
-                    <div class="stat-label">Avg Rating</div>
-                </div>
-            `;
-        }
-        
+
         function renderCalendar() {
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            document.getElementById('current-month').textContent = 
+                `${monthNames[currentMonth]} ${currentYear}`;
+
             const firstDay = new Date(currentYear, currentMonth, 1).getDay();
             const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
             const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
-            
-            document.getElementById('current-month').textContent = 
-                new Date(currentYear, currentMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-            
+
             const calendarDays = document.getElementById('calendar-days');
             calendarDays.innerHTML = '';
-            
+
+            const today = new Date();
+            const isCurrentMonth = currentMonth === today.getMonth() && currentYear === today.getFullYear();
+
             // Previous month days
             for (let i = firstDay - 1; i >= 0; i--) {
                 const day = daysInPrevMonth - i;
-                calendarDays.innerHTML += `<div class="day other-month"><div class="day-number">${day}</div></div>`;
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'day other-month';
+                dayDiv.innerHTML = `<div class="day-number">${day}</div>`;
+                calendarDays.appendChild(dayDiv);
             }
-            
+
             // Current month days
             for (let day = 1; day <= daysInMonth; day++) {
-                const date = new Date(currentYear, currentMonth, day);
-                const dateStr = date.toISOString().split('T')[0];
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'day';
+                
+                if (isCurrentMonth && day === today.getDate()) {
+                    dayDiv.classList.add('today');
+                }
+
+                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const dayEncounters = encounters.filter(e => e.date === dateStr);
+
+                let html = `<div class="day-number">${day}</div>`;
                 
-                const isToday = date.toDateString() === new Date().toDateString();
-                
-                let encounterIcons = '';
-                if (dayEncounters.length > 0) {
-                    encounterIcons = dayEncounters.map(e => 
-                        `<span class="encounter-icon" title="${e.position_name}" onclick="viewEncounter(${e.id})">${getPositionIcon(e.position)}</span>`
-                    ).join(' ');
-                }
-                
-                calendarDays.innerHTML += `
-                    <div class="day ${isToday ? 'today' : ''}">
-                        <div class="day-number">${day}</div>
-                        ${encounterIcons}
-                    </div>
-                `;
+                dayEncounters.forEach(encounter => {
+                    const icon = getPositionIcon(encounter.position);
+                    const positionName = encounter.position_name || 'Encounter';
+                    
+                    if (icon.startsWith('<svg')) {
+                        html += `<span class="encounter-icon" title="${positionName}" onclick="viewEncounter(${encounter.id})">${icon}</span>`;
+                    } else {
+                        html += `<span class="encounter-icon" title="${positionName}" onclick="viewEncounter(${encounter.id})">${icon}</span>`;
+                    }
+                });
+
+                dayDiv.innerHTML = html;
+                dayDiv.onclick = function(e) {
+                    if (!e.target.closest('.encounter-icon')) {
+                        openAddModal(dateStr);
+                    }
+                };
+
+                calendarDays.appendChild(dayDiv);
             }
-            
+
             // Next month days
-            const totalCells = firstDay + daysInMonth;
-            const remainingCells = 7 - (totalCells % 7);
-            if (remainingCells < 7) {
-                for (let i = 1; i <= remainingCells; i++) {
-                    calendarDays.innerHTML += `<div class="day other-month"><div class="day-number">${i}</div></div>`;
-                }
+            const totalCells = calendarDays.children.length;
+            const remainingCells = 42 - totalCells; // 6 rows × 7 days
+            for (let day = 1; day <= remainingCells; day++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'day other-month';
+                dayDiv.innerHTML = `<div class="day-number">${day}</div>`;
+                calendarDays.appendChild(dayDiv);
             }
         }
-        
+
         function previousMonth() {
             currentMonth--;
             if (currentMonth < 0) {
@@ -945,7 +872,7 @@
             }
             loadEncounters();
         }
-        
+
         function nextMonth() {
             currentMonth++;
             if (currentMonth > 11) {
@@ -954,226 +881,246 @@
             }
             loadEncounters();
         }
-        
-        function today() {
-            currentMonth = new Date().getMonth();
-            currentYear = new Date().getFullYear();
-            loadEncounters();
+
+        async function loadEncounters() {
+            const response = await fetch(`/api/encounters?month=${currentMonth + 1}&year=${currentYear}`);
+            encounters = await response.json();
+            renderCalendar();
         }
-        
-        function openAddModal() {
+
+        async function loadStats() {
+            const response = await fetch('/api/stats');
+            const stats = await response.json();
+
+            document.getElementById('total-count').textContent = stats.total;
+            document.getElementById('month-count').textContent = stats.this_month;
+            document.getElementById('avg-rating').textContent = stats.average_rating.toFixed(1);
+            document.getElementById('pending-count').textContent = stats.pending_proposals;
+        }
+
+        async function loadGamificationStats() {
+            try {
+                const response = await fetch('/api/user-stats');
+                const stats = await response.json();
+                
+                document.getElementById('user-level').textContent = stats.level;
+                document.getElementById('user-streak').textContent = stats.current_streak;
+                document.getElementById('user-points').textContent = stats.total_points;
+                document.getElementById('user-achievements').textContent = 
+                    `${stats.achievements_unlocked}/${stats.total_achievements}`;
+            } catch (error) {
+                console.error('Error loading gamification stats:', error);
+            }
+        }
+
+        function openAddModal(date = null) {
+            if (date) {
+                document.getElementById('date').value = date;
+            } else {
+                const today = new Date();
+                document.getElementById('date').value = today.toISOString().split('T')[0];
+            }
             document.getElementById('add-modal').classList.add('show');
-            document.getElementById('encounter-date').valueAsDate = new Date();
         }
-        
+
         function closeAddModal() {
             document.getElementById('add-modal').classList.remove('show');
-            document.getElementById('encounter-date').value = '';
-            document.getElementById('encounter-time').value = '';
-            document.getElementById('encounter-position').value = '';
-            document.getElementById('encounter-duration').value = '';
-            document.getElementById('encounter-rating').value = '';
-            document.getElementById('encounter-notes').value = '';
-            selectedCustomIcon = null;
-            document.querySelectorAll('.icon-option').forEach(el => el.classList.remove('selected'));
+            document.getElementById('add-form').reset();
         }
-        
-        async function handleAddEncounter(e) {
-            e.preventDefault();
-            
-            const position = document.getElementById('encounter-position').value;
-            const duration = document.getElementById('encounter-duration').value;
-            const rating = document.getElementById('encounter-rating').value;
-            
+
+        async function addEncounter(event) {
+            event.preventDefault();
+
             const data = {
-                date: document.getElementById('encounter-date').value,
-                time: document.getElementById('encounter-time').value || null,
-                position: selectedCustomIcon || position,
-                duration: duration === '' ? null : parseInt(duration),
-                rating: rating === '' ? null : parseInt(rating),
-                notes: document.getElementById('encounter-notes').value
+                date: document.getElementById('date').value,
+                time: document.getElementById('time').value,
+                position: document.getElementById('position').value,
+                duration: document.getElementById('duration').value,
+                notes: document.getElementById('notes').value
             };
-            
+
             const response = await fetch('/api/encounters', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
-            
+
             if (response.ok) {
                 closeAddModal();
                 loadEncounters();
                 loadStats();
+                loadGamificationStats();
             }
         }
-        
-        async function viewEncounter(encounterId) {
-            currentEncounterId = encounterId;
-            
-            const response = await fetch(`/api/encounters/${encounterId}`);
+
+        async function viewEncounter(id) {
+            const response = await fetch(`/api/encounters/${id}`);
             const encounter = await response.json();
-            currentEncounterData = encounter;
-            
-            document.getElementById('detail-date').textContent = new Date(encounter.date).toLocaleDateString();
-            document.getElementById('detail-time').textContent = encounter.time || 'Not specified';
-            document.getElementById('detail-icon').innerHTML = getPositionIcon(encounter.position);
-            document.getElementById('detail-position').textContent = encounter.position_name;
-            document.getElementById('detail-duration').textContent = encounter.duration || 'Not specified';
-            document.getElementById('detail-username').textContent = encounter.username;
-            document.getElementById('detail-notes').textContent = encounter.notes || 'No notes';
-            
-            // Show delete button only if user owns the encounter
-            document.getElementById('delete-btn').style.display = encounter.is_own ? 'block' : 'none';
-            
-            // Display Creator Rating
-            const creatorLabel = document.getElementById('creator-rating-label');
-            const creatorDisplay = document.getElementById('creator-rating-display');
-            const creatorInput = document.getElementById('creator-rating-input');
-            
-            creatorLabel.textContent = encounter.creator_rating.username + ':';
-            
-            if (encounter.creator_rating.value) {
-                creatorDisplay.innerHTML = '⭐'.repeat(encounter.creator_rating.value);
-                creatorDisplay.style.display = 'block';
-                creatorInput.style.display = 'none';
-            } else if (encounter.creator_rating.can_edit) {
-                creatorDisplay.style.display = 'none';
-                creatorInput.style.display = 'block';
-            } else {
-                creatorDisplay.textContent = 'Not rated yet';
-                creatorDisplay.style.display = 'block';
-                creatorInput.style.display = 'none';
-            }
-            
-            // Display Partner Rating
-            const partnerSection = document.getElementById('partner-rating-section');
-            if (encounter.partner_rating) {
-                partnerSection.style.display = 'block';
-                const partnerLabel = document.getElementById('partner-rating-label');
-                const partnerDisplay = document.getElementById('partner-rating-display');
-                const partnerInput = document.getElementById('partner-rating-input');
+
+            let html = `
+                <div class="detail-row">
+                    <div class="detail-label">Date</div>
+                    <div class="detail-value">${encounter.date}${encounter.time ? ' at ' + encounter.time : ''}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Position</div>
+                    <div class="detail-value">${encounter.position_name}</div>
+                </div>
+                ${encounter.duration ? `
+                <div class="detail-row">
+                    <div class="detail-label">Duration</div>
+                    <div class="detail-value">${encounter.duration} minutes</div>
+                </div>
+                ` : ''}
+                ${encounter.notes ? `
+                <div class="detail-row">
+                    <div class="detail-label">Notes</div>
+                    <div class="detail-value">${encounter.notes}</div>
+                </div>
+                ` : ''}
                 
-                partnerLabel.textContent = encounter.partner_rating.username + ':';
-                
-                if (encounter.partner_rating.value) {
-                    partnerDisplay.innerHTML = '⭐'.repeat(encounter.partner_rating.value);
-                    partnerDisplay.style.display = 'block';
-                    partnerInput.style.display = 'none';
-                } else if (encounter.partner_rating.can_edit) {
-                    partnerDisplay.style.display = 'none';
-                    partnerInput.style.display = 'block';
-                } else {
-                    partnerDisplay.textContent = 'Not rated yet';
-                    partnerDisplay.style.display = 'block';
-                    partnerInput.style.display = 'none';
-                }
-            } else {
-                partnerSection.style.display = 'none';
-            }
-            
-            // Display comments with clear user labels
-            const commentsList = document.getElementById('comments-list');
-            if (encounter.comments.length === 0) {
-                commentsList.innerHTML = '<p style="color: var(--text-light); font-style: italic;">No comments yet</p>';
-            } else {
-                commentsList.innerHTML = encounter.comments.map(comment => `
-                    <div style="background: ${comment.is_own ? 'rgba(201, 134, 134, 0.1)' : 'rgba(212, 165, 165, 0.05)'}; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid ${comment.is_own ? 'var(--accent)' : 'var(--primary)'};">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <strong style="color: var(--secondary);">${comment.user}</strong>
-                            <span style="color: var(--text-light); font-size: 0.9rem;">${formatTime(comment.created_at)}</span>
+                <div class="ratings-section">
+                    <h3 style="margin-bottom: 15px;">Ratings</h3>
+                    
+                    <div class="rating-item">
+                        <div>
+                            <span class="rating-username">${encounter.creator_rating.username}</span>
                         </div>
-                        <p style="margin-bottom: 5px;">${comment.text}</p>
-                        ${comment.rating ? `<div style="color: var(--accent);">${'⭐'.repeat(comment.rating)}</div>` : ''}
+                        <div>
+                            ${encounter.creator_rating.can_edit ? `
+                                <select onchange="rateEncounter(${id}, this.value)" style="padding: 5px; border-radius: 5px;">
+                                    <option value="">Rate...</option>
+                                    <option value="1" ${encounter.creator_rating.value === 1 ? 'selected' : ''}>⭐</option>
+                                    <option value="2" ${encounter.creator_rating.value === 2 ? 'selected' : ''}>⭐⭐</option>
+                                    <option value="3" ${encounter.creator_rating.value === 3 ? 'selected' : ''}>⭐⭐⭐</option>
+                                    <option value="4" ${encounter.creator_rating.value === 4 ? 'selected' : ''}>⭐⭐⭐⭐</option>
+                                    <option value="5" ${encounter.creator_rating.value === 5 ? 'selected' : ''}>⭐⭐⭐⭐⭐</option>
+                                </select>
+                            ` : `
+                                <span class="rating-value">${encounter.creator_rating.value ? '⭐'.repeat(encounter.creator_rating.value) : 'Not rated'}</span>
+                            `}
+                        </div>
                     </div>
-                `).join('');
-            }
-            
-            document.getElementById('encounter-modal').classList.add('show');
+
+                    ${encounter.partner_rating ? `
+                    <div class="rating-item">
+                        <div>
+                            <span class="rating-username">${encounter.partner_rating.username}</span>
+                        </div>
+                        <div>
+                            ${encounter.partner_rating.can_edit ? `
+                                <select onchange="rateEncounter(${id}, this.value)" style="padding: 5px; border-radius: 5px;">
+                                    <option value="">Rate...</option>
+                                    <option value="1" ${encounter.partner_rating.value === 1 ? 'selected' : ''}>⭐</option>
+                                    <option value="2" ${encounter.partner_rating.value === 2 ? 'selected' : ''}>⭐⭐</option>
+                                    <option value="3" ${encounter.partner_rating.value === 3 ? 'selected' : ''}>⭐⭐⭐</option>
+                                    <option value="4" ${encounter.partner_rating.value === 4 ? 'selected' : ''}>⭐⭐⭐⭐</option>
+                                    <option value="5" ${encounter.partner_rating.value === 5 ? 'selected' : ''}>⭐⭐⭐⭐⭐</option>
+                                </select>
+                            ` : `
+                                <span class="rating-value">${encounter.partner_rating.value ? '⭐'.repeat(encounter.partner_rating.value) : 'Not rated'}</span>
+                            `}
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+
+                <div class="comments-section">
+                    <h3 style="margin-bottom: 15px;">Comments</h3>
+                    ${encounter.comments.map(comment => `
+                        <div class="comment ${comment.is_own ? 'own-comment' : 'partner-comment'}">
+                            <div class="comment-header">
+                                <span class="comment-user">${comment.user}</span>
+                                <span class="comment-date">${new Date(comment.created_at).toLocaleDateString()}</span>
+                            </div>
+                            <div class="comment-text">${comment.text}</div>
+                        </div>
+                    `).join('')}
+
+                    <div class="add-comment-form">
+                        <h4 style="margin-bottom: 10px;">Add Comment</h4>
+                        <textarea id="comment-text" placeholder="Write a comment..." style="width: 100%; padding: 10px; border-radius: 8px; border: 2px solid #e0e0e0; margin-bottom: 10px;"></textarea>
+                        <button onclick="addComment(${id})" class="btn">Post Comment</button>
+                    </div>
+                </div>
+
+                ${encounter.is_own ? `
+                <div class="action-buttons">
+                    <button onclick="deleteEncounter(${id})" class="btn btn-danger">Delete</button>
+                </div>
+                ` : ''}
+            `;
+
+            document.getElementById('encounter-detail').innerHTML = html;
+            document.getElementById('view-modal').classList.add('show');
         }
-        
-        async function saveRating(type) {
-            const selectId = type === 'creator' ? 'creator-rating-select' : 'partner-rating-select';
-            const rating = parseInt(document.getElementById(selectId).value);
-            
-            if (!rating) {
-                alert('Please select a rating');
-                return;
-            }
-            
-            const response = await fetch(`/api/encounters/${currentEncounterId}/rating`, {
+
+        function closeViewModal() {
+            document.getElementById('view-modal').classList.remove('show');
+        }
+
+        async function rateEncounter(encounterId, rating) {
+            if (!rating) return;
+
+            await fetch(`/api/encounters/${encounterId}/rating`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ rating })
+                body: JSON.stringify({ rating: parseInt(rating) })
             });
-            
-            if (response.ok) {
-                viewEncounter(currentEncounterId);
-            }
+
+            viewEncounter(encounterId);
+            loadStats();
+            loadGamificationStats();
         }
-        
-        function closeEncounterModal() {
-            document.getElementById('encounter-modal').classList.remove('show');
-            currentEncounterId = null;
-            currentEncounterData = null;
-        }
-        
-        async function deleteEncounter() {
-            if (!confirm('Are you sure you want to delete this encounter?')) return;
-            
-            const response = await fetch(`/api/encounters/${currentEncounterId}`, {
-                method: 'DELETE'
-            });
-            
-            if (response.ok) {
-                closeEncounterModal();
-                loadEncounters();
-                loadStats();
-            }
-        }
-        
-        async function addComment() {
-            const text = document.getElementById('comment-text').value.trim();
-            
-            if (!text) {
-                alert('Please enter a comment');
-                return;
-            }
-            
-            const response = await fetch(`/api/encounters/${currentEncounterId}/comments`, {
+
+        async function addComment(encounterId) {
+            const text = document.getElementById('comment-text').value;
+            if (!text.trim()) return;
+
+            await fetch(`/api/encounters/${encounterId}/comments`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text })
             });
-            
-            if (response.ok) {
-                document.getElementById('comment-text').value = '';
-                viewEncounter(currentEncounterId);
-            }
-        }
-        
-        function formatTime(isoString) {
-            const date = new Date(isoString);
-            const now = new Date();
-            const diff = now - date;
-            const minutes = Math.floor(diff / 60000);
-            const hours = Math.floor(diff / 3600000);
-            const days = Math.floor(diff / 86400000);
-            
-            if (minutes < 1) return 'Just now';
-            if (minutes < 60) return `${minutes}m ago`;
-            if (hours < 24) return `${hours}h ago`;
-            if (days < 7) return `${days}d ago`;
-            return date.toLocaleDateString();
-        }
-        
-       // Initialize - load custom icons FIRST, then encounters
-async function init() {
-    await loadCustomIcons();  // Wait for icons to load
-    loadEncounters();
-    loadStats();
-}
 
-init();
+            viewEncounter(encounterId);
+            loadGamificationStats();
+        }
+
+        async function deleteEncounter(id) {
+            if (!confirm('Are you sure you want to delete this encounter?')) return;
+
+            await fetch(`/api/encounters/${id}`, {
+                method: 'DELETE'
+            });
+
+            closeViewModal();
+            loadEncounters();
+            loadStats();
+            loadGamificationStats();
+        }
+
+        // Close modals on outside click
+        document.getElementById('add-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeAddModal();
+        });
+
+        document.getElementById('view-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeViewModal();
+        });
+
+        // Initialize
+        async function init() {
+            await loadCustomIcons();
+            loadEncounters();
+            loadStats();
+            loadGamificationStats();
+        }
+
+        init();
+
+        // Refresh gamification stats every 30 seconds
+        setInterval(loadGamificationStats, 30000);
     </script>
 </body>
 </html>
