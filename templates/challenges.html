@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Challenges - Intimate Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #f5576c;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav a {
+            padding: 10px 20px;
+            background: white;
+            color: #f5576c;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .nav a:hover {
+            background: #f5576c;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .challenges-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .challenges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .challenge-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .challenge-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .challenge-card.completed {
+            border: 3px solid #4CAF50;
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.05));
+        }
+
+        .challenge-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .challenge-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #333;
+            flex: 1;
+        }
+
+        .challenge-reward {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            white-space: nowrap;
+            margin-left: 10px;
+        }
+
+        .challenge-description {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .challenge-dates {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .date-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .progress-section {
+            margin-top: 20px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 25px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.85rem;
+            transition: width 0.5s ease;
+        }
+
+        .progress-fill.completed {
+            background: linear-gradient(90deg, #4CAF50 0%, #45a049 100%);
+        }
+
+        .completed-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .completed-date {
+            text-align: center;
+            color: #4CAF50;
+            font-weight: bold;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .empty-state {
+            background: white;
+            border-radius: 15px;
+            padding: 60px 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .empty-state p {
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .challenges-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-overview {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .challenge-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .challenge-reward {
+                align-self: flex-start;
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/">📅 Calendar</a>
+            <a href="/profile">👤 Profile</a>
+            <a href="/achievements">🏆 Achievements</a>
+            <a href="/challenges">🎯 Challenges</a>
+            <a href="/messages">💌 Messages</a>
+        </div>
+
+        <div class="header">
+            <h1>🎯 Challenges</h1>
+            <p>Complete challenges to earn points and level up!</p>
+        </div>
+
+        <div class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-value" id="active-count">-</div>
+                <div class="stat-label">Active Challenges</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="completed-count">-</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="points-earned">-</div>
+                <div class="stat-label">Points Earned</div>
+            </div>
+        </div>
+
+        <div class="challenges-section">
+            <h2 class="section-title">Active Challenges</h2>
+            <div class="challenges-grid" id="active-challenges">
+                <!-- Active challenges loaded here -->
+            </div>
+        </div>
+
+        <div class="challenges-section" id="completed-section" style="display: none;">
+            <h2 class="section-title">Completed Challenges</h2>
+            <div class="challenges-grid" id="completed-challenges">
+                <!-- Completed challenges loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadChallenges() {
+            const response = await fetch('/api/challenges');
+            const challenges = await response.json();
+
+            const active = challenges.filter(c => !c.completed);
+            const completed = challenges.filter(c => c.completed);
+
+            // Update stats
+            document.getElementById('active-count').textContent = active.length;
+            document.getElementById('completed-count').textContent = completed.length;
+            
+            const pointsEarned = completed.reduce((sum, c) => sum + c.reward_points, 0);
+            document.getElementById('points-earned').textContent = pointsEarned;
+
+            // Render active challenges
+            const activeGrid = document.getElementById('active-challenges');
+            if (active.length === 0) {
+                activeGrid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🎯</div>
+                        <h3>No Active Challenges</h3>
+                        <p>Check back soon for new challenges!</p>
+                    </div>
+                `;
+            } else {
+                activeGrid.innerHTML = active.map(renderChallengeCard).join('');
+            }
+
+            // Render completed challenges
+            if (completed.length > 0) {
+                document.getElementById('completed-section').style.display = 'block';
+                document.getElementById('completed-challenges').innerHTML = 
+                    completed.map(renderChallengeCard).join('');
+            }
+        }
+
+        function renderChallengeCard(challenge) {
+            const progress = Math.min(100, (challenge.current_progress / challenge.target_value) * 100);
+            const startDate = challenge.start_date ? new Date(challenge.start_date).toLocaleDateString() : null;
+            const endDate = challenge.end_date ? new Date(challenge.end_date).toLocaleDateString() : null;
+            const completedDate = challenge.completed_at ? new Date(challenge.completed_at).toLocaleDateString() : null;
+
+            return `
+                <div class="challenge-card ${challenge.completed ? 'completed' : ''}">
+                    ${challenge.completed ? '<div class="completed-badge">✓ COMPLETED</div>' : ''}
+                    
+                    <div class="challenge-header">
+                        <div class="challenge-name">${challenge.name}</div>
+                        ${challenge.reward_points > 0 ? 
+                            `<div class="challenge-reward">+${challenge.reward_points} pts</div>` 
+                            : ''}
+                    </div>
+
+                    <div class="challenge-description">${challenge.description}</div>
+
+                    ${(startDate || endDate) ? `
+                        <div class="challenge-dates">
+                            ${startDate ? `<div class="date-item">📅 Start: ${startDate}</div>` : ''}
+                            ${endDate ? `<div class="date-item">🏁 End: ${endDate}</div>` : ''}
+                        </div>
+                    ` : ''}
+
+                    <div class="progress-section">
+                        <div class="progress-label">
+                            <span>Progress</span>
+                            <span><strong>${challenge.current_progress}</strong> / ${challenge.target_value}</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill ${challenge.completed ? 'completed' : ''}" 
+                                 style="width: ${progress}%">
+                                ${progress.toFixed(0)}%
+                            </div>
+                        </div>
+                    </div>
+
+                    ${challenge.completed && completedDate ? 
+                        `<div class="completed-date">🎉 Completed on ${completedDate}</div>` 
+                        : ''}
+                </div>
+            `;
+        }
+
+        // Initialize
+        loadChallenges();
+
+        // Refresh every 30 seconds
+        setInterval(loadChallenges, 30000);
+    </script>
+</body>
+</html>
