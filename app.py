@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import os
 import secrets
 import requests
@@ -109,6 +109,53 @@ class EncounterRating(db.Model):
     rating = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class Achievement(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(50), unique=True, nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    icon = db.Column(db.String(50), nullable=False)
+    category = db.Column(db.String(50), nullable=False)
+    tier = db.Column(db.String(20), default='bronze')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class UserAchievement(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    achievement_id = db.Column(db.Integer, db.ForeignKey('achievement.id'), nullable=False)
+    unlocked_at = db.Column(db.DateTime, default=datetime.utcnow)
+    progress = db.Column(db.Integer, default=100)
+
+class Challenge(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(50), unique=True, nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    target_value = db.Column(db.Integer, nullable=False)
+    reward_points = db.Column(db.Integer, default=0)
+    start_date = db.Column(db.Date)
+    end_date = db.Column(db.Date)
+    active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class UserChallenge(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    challenge_id = db.Column(db.Integer, db.ForeignKey('challenge.id'), nullable=False)
+    current_progress = db.Column(db.Integer, default=0)
+    completed = db.Column(db.Boolean, default=False)
+    completed_at = db.Column(db.DateTime)
+
+class UserStats(db.Model):
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    total_points = db.Column(db.Integer, default=0)
+    level = db.Column(db.Integer, default=1)
+    current_streak = db.Column(db.Integer, default=0)
+    longest_streak = db.Column(db.Integer, default=0)
+    last_encounter_date = db.Column(db.Date)
+    total_encounters = db.Column(db.Integer, default=0)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================
@@ -169,6 +216,216 @@ def create_notification(user_id, notification_type, message, encounter_id=None):
     db.session.add(notification)
     db.session.commit()
 
+def get_or_create_user_stats(user_id):
+    """Get or create user stats"""
+    stats = UserStats.query.filter_by(user_id=user_id).first()
+    if not stats:
+        stats = UserStats(user_id=user_id)
+        db.session.add(stats)
+        db.session.commit()
+    return stats
+
+def calculate_level(points):
+    """Calculate level based on points (100 points per level)"""
+    return (points // 100) + 1
+
+def award_points(user_id, points, reason=None):
+    """Award points to user and update level"""
+    stats = get_or_create_user_stats(user_id)
+    old_level = stats.level
+    stats.total_points += points
+    stats.level = calculate_level(stats.total_points)
+    stats.updated_at = datetime.utcnow()
+    db.session.commit()
+    
+    # Notify if leveled up
+    if stats.level > old_level:
+        create_notification(
+            user_id,
+            'level_up',
+            f"🎉 Level Up! You've reached level {stats.level}!"
+        )
+    
+    logger.info(f"Awarded {points} points to user {user_id} - {reason}")
+    return stats
+
+def update_streak(user_id, encounter_date):
+    """Update user's streak based on encounter date"""
+    stats = get_or_create_user_stats(user_id)
+    
+    if not stats.last_encounter_date:
+        # First encounter
+        stats.current_streak = 1
+        stats.longest_streak = 1
+    else:
+        days_diff = (encounter_date - stats.last_encounter_date).days
+        
+        if days_diff == 0:
+            # Same day, no change to streak
+            pass
+        elif days_diff == 1:
+            # Consecutive day
+            stats.current_streak += 1
+            if stats.current_streak > stats.longest_streak:
+                stats.longest_streak = stats.current_streak
+        elif days_diff > 1:
+            # Streak broken
+            stats.current_streak = 1
+    
+    stats.last_encounter_date = encounter_date
+    stats.total_encounters += 1
+    stats.updated_at = datetime.utcnow()
+    db.session.commit()
+    
+    return stats
+
+def unlock_achievement(user_id, achievement_code):
+    """Unlock an achievement for a user"""
+    achievement = Achievement.query.filter_by(code=achievement_code).first()
+    if not achievement:
+        return False
+    
+    # Check if already unlocked
+    existing = UserAchievement.query.filter_by(
+        user_id=user_id,
+        achievement_id=achievement.id
+    ).first()
+    
+    if existing:
+        return False
+    
+    # Unlock achievement
+    user_achievement = UserAchievement(
+        user_id=user_id,
+        achievement_id=achievement.id
+    )
+    db.session.add(user_achievement)
+    
+    # Award points based on tier
+    points_map = {'bronze': 10, 'silver': 25, 'gold': 50, 'platinum': 100}
+    points = points_map.get(achievement.tier, 10)
+    award_points(user_id, points, f"Achievement: {achievement.name}")
+    
+    # Notify user
+    create_notification(
+        user_id,
+        'achievement_unlocked',
+        f"🏆 Achievement Unlocked: {achievement.icon} {achievement.name}!"
+    )
+    
+    db.session.commit()
+    logger.info(f"User {user_id} unlocked achievement: {achievement.name}")
+    return True
+
+def check_achievements(user_id):
+    """Check and unlock achievements for a user"""
+    user = User.query.get(user_id)
+    stats = get_or_create_user_stats(user_id)
+    
+    # Get all user's encounters
+    encounters = Encounter.query.filter_by(user_id=user_id).all()
+    total_count = len(encounters)
+    
+    # Frequency achievements
+    if total_count >= 1:
+        unlock_achievement(user_id, 'first_timer')
+    if total_count >= 10:
+        unlock_achievement(user_id, 'milestone_10')
+    if total_count >= 25:
+        unlock_achievement(user_id, 'milestone_25')
+    if total_count >= 50:
+        unlock_achievement(user_id, 'milestone_50')
+    if total_count >= 100:
+        unlock_achievement(user_id, 'century_club')
+    if total_count >= 365:
+        unlock_achievement(user_id, 'dedication')
+    
+    # Streak achievements
+    if stats.current_streak >= 3:
+        unlock_achievement(user_id, 'hot_streak')
+    if stats.current_streak >= 7:
+        unlock_achievement(user_id, 'on_fire')
+        unlock_achievement(user_id, 'week_streak')
+    if stats.current_streak >= 30:
+        unlock_achievement(user_id, 'unstoppable')
+    if stats.current_streak >= 100:
+        unlock_achievement(user_id, 'legend')
+    
+    # Variety achievements
+    positions_used = set([e.position for e in encounters])
+    if len(positions_used) >= 5:
+        unlock_achievement(user_id, 'explorer')
+    if len(positions_used) >= 9:
+        unlock_achievement(user_id, 'adventurer')
+    
+    # Position master
+    from collections import Counter
+    position_counts = Counter([e.position for e in encounters])
+    if any(count >= 10 for count in position_counts.values()):
+        unlock_achievement(user_id, 'position_master')
+    
+    # Rating achievements
+    ratings = EncounterRating.query.filter_by(user_id=user_id).all()
+    five_star_count = sum(1 for r in ratings if r.rating == 5)
+    if five_star_count >= 10:
+        unlock_achievement(user_id, 'five_star')
+    
+    high_ratings = sum(1 for r in ratings if r.rating >= 4)
+    if high_ratings >= 20:
+        unlock_achievement(user_id, 'consistency')
+    
+    if len(ratings) >= 25:
+        unlock_achievement(user_id, 'rated_all')
+    
+    # Social achievements
+    if user.partner_id:
+        unlock_achievement(user_id, 'connector')
+        
+        # Partner ratings
+        partner_ratings = EncounterRating.query.filter_by(user_id=user.partner_id).count()
+        if partner_ratings >= 10:
+            unlock_achievement(user_id, 'team_player')
+    
+    # Comments
+    comments = Comment.query.filter_by(commenter_id=user_id).count()
+    if comments >= 1:
+        unlock_achievement(user_id, 'commenter')
+    if comments >= 50:
+        unlock_achievement(user_id, 'communicator')
+    
+    # Time-based achievements  
+    encounters_with_time = [e for e in encounters if e.time]
+    night_count = sum(1 for e in encounters_with_time if e.time.hour >= 0 and e.time.hour < 6)
+    morning_count = sum(1 for e in encounters_with_time if e.time.hour >= 6 and e.time.hour < 12)
+    
+    if night_count >= 10:
+        unlock_achievement(user_id, 'night_owl')
+    if morning_count >= 10:
+        unlock_achievement(user_id, 'early_bird')
+    
+    # Weekend/weekday
+    weekend_count = sum(1 for e in encounters if e.date.weekday() >= 5)
+    weekday_count = sum(1 for e in encounters if e.date.weekday() < 5)
+    
+    if weekend_count >= 20:
+        unlock_achievement(user_id, 'weekend_warrior')
+    if weekday_count >= 20:
+        unlock_achievement(user_id, 'weekday_wonder')
+    
+    # Special achievements
+    encounters_with_duration = sum(1 for e in encounters if e.duration)
+    if encounters_with_duration >= 20:
+        unlock_achievement(user_id, 'data_lover')
+    
+    encounters_with_notes = sum(1 for e in encounters if e.notes)
+    if encounters_with_notes >= 25:
+        unlock_achievement(user_id, 'detailed')
+    
+    # Custom icons
+    custom_encounters = sum(1 for e in encounters if e.position not in ['missionary', 'doggy', 'cowgirl', 'reverse_cowgirl', 'spoon', 'standing', 'oral', '69', 'other'])
+    if custom_encounters >= 1:
+        unlock_achievement(user_id, 'custom_lover')
+
 # ============================================================================
 # AUTHENTICATION ROUTES
 # ============================================================================
@@ -212,6 +469,9 @@ def register():
     db.session.add(user)
     db.session.commit()
     
+    # Initialize user stats
+    get_or_create_user_stats(user.id)
+    
     session.permanent = True
     session['user_id'] = user.id
     
@@ -247,18 +507,34 @@ def admin():
     return render_template('admin.html')
 
 @app.route('/messages')
-def messages():
+def messages_page():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     
     return render_template('messages.html')
 
 @app.route('/proposals')
-def proposals_page():  # ✅ Unique name!
+def proposals_page():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     
     return render_template('proposals.html')
+
+@app.route('/achievements')
+def achievements_page():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('achievements.html')
+
+@app.route('/challenges')
+def challenges_page():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('challenges.html')
+
+# Continue in next message...
 
 # ============================================================================
 # API ROUTES - Profile
@@ -395,6 +671,15 @@ def encounters():
         
         db.session.add(encounter)
         db.session.commit()
+        
+        # Update streak and stats
+        update_streak(current_user_id, encounter.date)
+        
+        # Award points for encounter
+        award_points(current_user_id, 5, "New encounter")
+        
+        # Check achievements
+        check_achievements(current_user_id)
         
         # Notify partner if connected
         user = User.query.get(current_user_id)
@@ -538,8 +823,14 @@ def rate_encounter(encounter_id):
             rating=rating_value
         )
         db.session.add(new_rating)
+        
+        # Award points for rating
+        award_points(session['user_id'], 2, "Rated encounter")
     
     db.session.commit()
+    
+    # Check achievements
+    check_achievements(session['user_id'])
     
     return jsonify({'success': True})
 
@@ -557,6 +848,11 @@ def delete_encounter(encounter_id):
     Notification.query.filter_by(encounter_id=encounter_id).delete()
     
     db.session.delete(encounter)
+    db.session.commit()
+    
+    # Recalculate stats and achievements
+    stats = get_or_create_user_stats(session['user_id'])
+    stats.total_encounters = Encounter.query.filter_by(user_id=session['user_id']).count()
     db.session.commit()
     
     return jsonify({'success': True})
@@ -577,6 +873,12 @@ def add_comment(encounter_id):
     
     db.session.add(comment)
     db.session.commit()
+    
+    # Award points for commenting
+    award_points(session['user_id'], 1, "Added comment")
+    
+    # Check achievements
+    check_achievements(session['user_id'])
     
     # Notify the encounter owner
     encounter = Encounter.query.get(encounter_id)
@@ -637,6 +939,101 @@ def stats():
         'this_month': this_month,
         'average_rating': avg_rating,
         'pending_proposals': pending
+    })
+
+# ============================================================================
+# API ROUTES - Gamification
+# ============================================================================
+
+@app.route('/api/achievements')
+def get_achievements():
+    """Get all achievements with unlock status"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    all_achievements = Achievement.query.all()
+    user_achievements = UserAchievement.query.filter_by(user_id=session['user_id']).all()
+    unlocked_ids = {ua.achievement_id for ua in user_achievements}
+    
+    achievements_data = []
+    for achievement in all_achievements:
+        achievements_data.append({
+            'id': achievement.id,
+            'code': achievement.code,
+            'name': achievement.name,
+            'description': achievement.description,
+            'icon': achievement.icon,
+            'category': achievement.category,
+            'tier': achievement.tier,
+            'unlocked': achievement.id in unlocked_ids,
+            'unlocked_at': next(
+                (ua.unlocked_at.isoformat() for ua in user_achievements if ua.achievement_id == achievement.id),
+                None
+            )
+        })
+    
+    return jsonify(achievements_data)
+
+@app.route('/api/challenges')
+def get_challenges():
+    """Get all active challenges with user progress"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    active_challenges = Challenge.query.filter_by(active=True).all()
+    user_challenges = UserChallenge.query.filter_by(user_id=session['user_id']).all()
+    
+    challenges_data = []
+    for challenge in active_challenges:
+        user_challenge = next(
+            (uc for uc in user_challenges if uc.challenge_id == challenge.id),
+            None
+        )
+        
+        challenges_data.append({
+            'id': challenge.id,
+            'code': challenge.code,
+            'name': challenge.name,
+            'description': challenge.description,
+            'target_value': challenge.target_value,
+            'reward_points': challenge.reward_points,
+            'start_date': challenge.start_date.isoformat() if challenge.start_date else None,
+            'end_date': challenge.end_date.isoformat() if challenge.end_date else None,
+            'current_progress': user_challenge.current_progress if user_challenge else 0,
+            'completed': user_challenge.completed if user_challenge else False,
+            'completed_at': user_challenge.completed_at.isoformat() if user_challenge and user_challenge.completed_at else None
+        })
+    
+    return jsonify(challenges_data)
+
+@app.route('/api/user-stats')
+def get_user_stats():
+    """Get user's gamification stats"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    stats = get_or_create_user_stats(session['user_id'])
+    
+    # Count unlocked achievements
+    achievements_count = UserAchievement.query.filter_by(user_id=session['user_id']).count()
+    total_achievements = Achievement.query.count()
+    
+    # Count completed challenges
+    completed_challenges = UserChallenge.query.filter_by(
+        user_id=session['user_id'],
+        completed=True
+    ).count()
+    
+    return jsonify({
+        'total_points': stats.total_points,
+        'level': stats.level,
+        'current_streak': stats.current_streak,
+        'longest_streak': stats.longest_streak,
+        'total_encounters': stats.total_encounters,
+        'achievements_unlocked': achievements_count,
+        'total_achievements': total_achievements,
+        'challenges_completed': completed_challenges,
+        'last_encounter_date': stats.last_encounter_date.isoformat() if stats.last_encounter_date else None
     })
 
 # ============================================================================
