@@ -1006,6 +1006,123 @@ def get_challenges():
     
     return jsonify(challenges_data)
 
+# Add these routes to your app.py file (after the existing /api/challenges route)
+
+@app.route('/admin/challenges')
+def admin_challenges():
+    """Admin page for managing challenges"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    user = User.query.get(session['user_id'])
+    if not user.is_admin:
+        return redirect(url_for('index'))
+    
+    return render_template('admin_challenges.html')
+
+@app.route('/api/admin/challenges', methods=['POST'])
+def create_challenge():
+    """Create a new challenge (admin only)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    user = User.query.get(session['user_id'])
+    if not user.is_admin:
+        return jsonify({'error': 'Admin access required'}), 403
+    
+    data = request.get_json()
+    
+    challenge = Challenge(
+        code=data['code'],
+        name=data['name'],
+        description=data['description'],
+        target_value=data['target_value'],
+        reward_points=data.get('reward_points', 0),
+        start_date=datetime.fromisoformat(data['start_date']).date() if data.get('start_date') else None,
+        end_date=datetime.fromisoformat(data['end_date']).date() if data.get('end_date') else None,
+        active=data.get('active', True)
+    )
+    
+    db.session.add(challenge)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'id': challenge.id})
+
+@app.route('/api/admin/challenges/<int:challenge_id>', methods=['PUT'])
+def update_challenge(challenge_id):
+    """Update a challenge (admin only)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    user = User.query.get(session['user_id'])
+    if not user.is_admin:
+        return jsonify({'error': 'Admin access required'}), 403
+    
+    challenge = Challenge.query.get(challenge_id)
+    if not challenge:
+        return jsonify({'error': 'Challenge not found'}), 404
+    
+    data = request.get_json()
+    
+    challenge.name = data.get('name', challenge.name)
+    challenge.description = data.get('description', challenge.description)
+    challenge.target_value = data.get('target_value', challenge.target_value)
+    challenge.reward_points = data.get('reward_points', challenge.reward_points)
+    challenge.active = data.get('active', challenge.active)
+    
+    if data.get('start_date'):
+        challenge.start_date = datetime.fromisoformat(data['start_date']).date()
+    if data.get('end_date'):
+        challenge.end_date = datetime.fromisoformat(data['end_date']).date()
+    
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/api/admin/challenges/<int:challenge_id>', methods=['DELETE'])
+def delete_challenge(challenge_id):
+    """Delete a challenge (admin only)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    user = User.query.get(session['user_id'])
+    if not user.is_admin:
+        return jsonify({'error': 'Admin access required'}), 403
+    
+    challenge = Challenge.query.get(challenge_id)
+    if not challenge:
+        return jsonify({'error': 'Challenge not found'}), 404
+    
+    db.session.delete(challenge)
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/api/admin/challenges/all', methods=['GET'])
+def get_all_challenges_admin():
+    """Get all challenges including inactive (admin only)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    user = User.query.get(session['user_id'])
+    if not user.is_admin:
+        return jsonify({'error': 'Admin access required'}), 403
+    
+    challenges = Challenge.query.all()
+    
+    return jsonify([{
+        'id': c.id,
+        'code': c.code,
+        'name': c.name,
+        'description': c.description,
+        'target_value': c.target_value,
+        'reward_points': c.reward_points,
+        'start_date': c.start_date.isoformat() if c.start_date else None,
+        'end_date': c.end_date.isoformat() if c.end_date else None,
+        'active': c.active,
+        'created_at': c.created_at.isoformat()
+    } for c in challenges])
+
 @app.route('/api/user-stats')
 def get_user_stats():
     """Get user's gamification stats"""
